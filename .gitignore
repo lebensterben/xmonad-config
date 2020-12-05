@@ -1,0 +1,25 @@
+# files produced by compiler
+*.o
+*.hi
+*.errors
+
+# compiled xmonad executable
+xmonad-x86_64-linux
+xmonadctl
+
+# files used by stack
+.stack-work/
+dist-newstyle
+stack.yaml.lock
+
+# directory created by `build` script
+bin/
+
+# files automatically created by xmonad
+xmonad.state
+
+# xpm directory that contains some icons
+xpm/
+
+# ghci
+prompt-history
