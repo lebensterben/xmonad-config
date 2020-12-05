@@ -57,6 +57,7 @@ myManageHook conf = conf
                            [ title =? "Mozilla Firefox" -?> doShift (wsLabels myWorkspaces !! 1)
                            -- , className =? "mpv" --> doShift (workspaces !! 7)
                            , className =? "Hexchat" -?> doShift (wsLabels myWorkspaces !! 5)
+                           , className =? "Gitter" -?> doShift (wsLabels myWorkspaces !! 5)
                            , className =? "Element" -?> doShift (wsLabels myWorkspaces !! 5)
                            , className =? "vlc" -?> doShift (wsLabels myWorkspaces !! 7)
                            , className =? "Gimp" -?> doShift (wsLabels myWorkspaces !! 8) >> doFloat

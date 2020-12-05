@@ -60,7 +60,7 @@ installMajorKeysP conf keyList = conf { keys = \c -> mkKeymap c $ keyList c }
 -- Utility function for adding keybindings to tree-select navigation
 ----------------------------------------------------------------------------------------------------
 
--- | Like 'XMonad.Util.EZConfig.AdditionalKeysP', except this takes one extra argument
+-- | Like 'XMonad.Util.EZConfig.additionalKeysP', except this takes one extra argument
 -- 'TS.TSConfig', and each key binding can only contain one key sequence.
 additionalTSKeysP conf tsconf keyList =
     tsconf { TS.ts_navigate = M.union (mkTSKeymap conf keyList) (TS.ts_navigate tsconf) }

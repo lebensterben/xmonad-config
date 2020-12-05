@@ -83,6 +83,7 @@ gridContent =
     , ("Firefox"        , "firefox")
     , ("Fonts"          , "gnome-font-viewer")
     , ("Gimp"           , "gimp")
+    , ("Gitter"         , "flatpak run im.gitter.Gitter")
     , ("HexChat"        , "hexchat")
     , ("RStudio"        , "rstudio")
     , ("Software Center", "gnome-software")
