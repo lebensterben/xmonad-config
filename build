@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+set -e
+
+stack build --verbosity error
+
+stack install --local-bin-path bin/ --verbosity error
+
+mv bin/xmonadctl xmonadctl
+mv bin/xmonadcfg "$1"
+
+rm -rf bin/

@@ -7,19 +7,26 @@
 xmonad-x86_64-linux
 xmonadctl
 
-# files used by stack
+# files used by stack and cabal
 .stack-work/
-dist-newstyle
+dist-newstyle/
+dist/
 stack.yaml.lock
+cabal.project.local
 
 # directory created by `build` script
 bin/
 
 # files automatically created by xmonad
 xmonad.state
+xmonad.warn
 
 # xpm directory that contains some icons
 xpm/
 
 # ghci
 prompt-history
+.ghci
+
+# hoogle
+*.hoo
