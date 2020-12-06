@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 ----------------------------------------------------------------------------------------------------
 -- |
 -- Module      : Custom.Workspaces
@@ -12,7 +13,9 @@ module Custom.Workspaces
     (
       -- * Workspaces
       wsLabels
+    , wsFind
     , Workspaces(..)
+    , WorkspacesStorage(..)
 
       -- * Workspaces Filter
     , WSFilter(..)
@@ -34,9 +37,13 @@ module Custom.Workspaces
 where
 
 import           Data.Maybe                               ( isJust )
-import           Custom.Util.XMobar                       ( xmobarEscape )
-import           XMonad                                   ( X
+import           Data.List                                ( elemIndex )
+import           XMonad                                   ( ExtensionClass(..)
+                                                          , Typeable
+                                                          , WorkspaceId
+                                                          , withWindowSet
                                                           , windows
+                                                          , X
                                                           )
 import           XMonad.Actions.CycleWS                   ( moveTo
                                                           , nextScreen
@@ -47,32 +54,47 @@ import           XMonad.Actions.CycleWS                   ( moveTo
                                                           , WSType(WSIs)
                                                           )
 import qualified XMonad.StackSet                         as W
+import qualified XMonad.Util.ExtensibleState             as XS
 import           XMonad.Util.Types                        ( Direction1D(..) )
-import           XMonad.Hooks.DynamicLog                  ( xmobarAction )
 
 ----------------------------------------------------------------------------------------------------
 -- Workspaces
 ----------------------------------------------------------------------------------------------------
 
+-- Currently only store wsLbls, and don't support dynamic workspaces yet
+-- TODO: doc
+newtype WorkspacesStorage = WorkspacesStorage [WorkspaceId] deriving Typeable
+instance ExtensionClass WorkspacesStorage where
+    initialValue = WorkspacesStorage []
+
 -- | Represents the set of workspaces in XMonad.
 --
 -- >>> myWorkspacesLbl = ["1", "2", "3"]
--- >>> Workspaces { wsLbls = myWorkspacesLbl, clickable = True }
--- Workspaces {wsLbls = ["1","2","3"], clickable = True}
+-- >>> Workspaces { wsLbls = myWorkspacesLbl, formatter = /omitted/ }
+-- Workspaces { wsLbls = ["1","2","3"] }
 data Workspaces = Workspaces {
-    wsLbls :: [String], -- ^ Labels of workspaces
-    clickable :: Bool   -- ^ Whether it's clickable
-    } deriving (Show)
+    wsLbls :: [WorkspaceId], -- ^ Labels of workspaces.
+    formatter :: (Int, WorkspaceId) -> WorkspaceId
+                             -- ^ Function that formats the raw labels, e.g. adding extra
+                             --   spacings, and adding XMobar action tag.
+    }
 
--- Retrieve the list of workspaces labels, formatted according to whether it's clickable.
-wsLabels :: Workspaces -> [String]
-wsLabels ws = if clickable ws then lbls $ map xmobarEscape $ wsLbls ws else wsLbls ws
-  where
-    lbls :: [String] -> [String]
-    lbls l =
-        [ xmobarAction ("xdotool key super+" ++ show i) "1" n
-        | (i, n) <- zip [1 :: Integer .. 9] l
-        ]
+instance Show Workspaces where
+    show =
+        \wss -> "Workspaces { wsLbls = " ++ show (wsLbls wss) ++ ", formatter = /omitted/" ++ " }"
+
+-- | Retrieve the list of workspaces labels, formatted with the formatter, and add xmobar actions
+--   according to whether it's clickable.
+wsLabels :: Workspaces -> [WorkspaceId]
+wsLabels wss = zipWith (curry $ formatter wss) [1 .. length lbls] lbls where lbls = wsLbls wss
+
+-- | Given a workspace tag, find it in current workspaces, and reformat it appropriately.
+--   If it's not found, return @Nothing@.
+wsFind :: WorkspaceId -> X (Maybe WorkspaceId)
+wsFind x = do
+    (WorkspacesStorage wss) <- XS.get
+    withWindowSet $ \ws ->
+        return $ let curWSs = W.tag <$> W.workspaces ws in (curWSs !!) <$> elemIndex x wss
 
 ----------------------------------------------------------------------------------------------------
 -- Workspaces Filter

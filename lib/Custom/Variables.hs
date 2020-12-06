@@ -23,16 +23,21 @@ module Custom.Variables
     , myXMobarPP
     , myFontSet
     , myWorkspaces
+    , initializeStorage
     )
 where
 
+import           Custom.Util.Apps                         ( DefaultApps(..) )
 import           Custom.Util.Color                        ( ColorScheme(..)
                                                           , xmobarColorizer
                                                           )
 import           Custom.Util.Font                         ( FontSet(..) )
-import           Custom.Util.XMobar                       ( XMobarConfig(..) )
+import           Custom.Util.XMobar                       ( xmobarClickableWSFormatter
+                                                          , XMobarConfig(..)
+                                                          )
 import           Custom.Workspaces                        ( wsLabels
                                                           , Workspaces(..)
+                                                          , WorkspacesStorage(..)
                                                           )
 import           XMonad                                   ( gets
                                                           , windowset
@@ -60,7 +65,7 @@ import           XMonad.Hooks.DynamicLog                  ( wrap
                                                           , PP(..)
                                                           )
 import qualified XMonad.StackSet                         as W
-import           Custom.Util.Apps                         ( DefaultApps(..) )
+import qualified XMonad.Util.ExtensibleState             as XS
 
 ----------------------------------------------------------------------------------------------------
 -- Modifier keys
@@ -113,9 +118,9 @@ myColor = ColorScheme { bg            = "#282c34"
                       , cyan          = "#46d9ff"
                       , darkCyan      = "#5699af"
                       , dimCyan       = "#80b2c3" -- darkCyan lighten 0.25
---                    , base2         =  "#202328" -- unused
---                    , base6         =  "#73797e" -- unused
---                    , base7         =  "#9ca0a4" -- white, unused
+--                    , base2         = "#202328" -- unused
+--                    , base6         = "#73797e" -- unused
+--                    , base7         = "#9ca0a4" -- white, unused
                       }
 
 inactiveWindowFadeAmount :: Rational
@@ -133,9 +138,10 @@ mySpacingWidth = 4
 
 myWorkspaces :: Workspaces
 myWorkspaces = Workspaces
-    { wsLbls = [" dev ", " www ", " sys ", " doc ", " vbox ", " chat ", " mus ", " vid ", " gfx "]
-    , clickable = True
+    { wsLbls    = ["dev", "www", "sys", "doc", "vbox", "chat", "mus", "vid", "gfx"]
+    , formatter = xmobarClickableWSFormatter . spacing
     }
+    where spacing = \(i, ws) -> (i, " " ++ ws ++ " ")
 
 ----------------------------------------------------------------------------------------------------
 -- Default Apps
@@ -164,19 +170,19 @@ xmobarrc = [PipedXMobar "/home/lucius/.config/xmobar/xmobarrc" "primary"]
 myXMobarPP :: PP
 myXMobarPP = def
     { ppCurrent         = xmobarColorizer myColor (Just green, Nothing) $ wrap "[" "]"
-                 -- #98be65
+                          -- #98be65
     , ppVisible         = xmobarColorizer myColor (Just green, Nothing) id
-                 -- #98be65
+                          -- #98be65
     , ppHidden          = xmobarColorizer myColor (Just violet, Nothing) $ wrap "*" ""
-                 -- #a9a1e1
+                          -- #a9a1e1
     , ppHiddenNoWindows = xmobarColorizer myColor (Just darkCyan, Nothing) id
-                 -- #5699af
+                          -- #5699af
     , ppUrgent          = xmobarColorizer myColor (Just orange, Nothing) $ wrap "!" "!"
-                 -- #da8548
+                          -- #da8548
     , ppSep             = xmobarColorizer myColor (Just base7, Nothing) id "<fn=1>|</fn>"
-                 -- #6b6d70
+                          -- #6b6d70
     , ppTitle           = xmobarColorizer myColor (Just fg, Nothing) $ shorten 80
-                 -- #bbc2cf
+                          -- #bbc2cf
     , ppLayout          = \l -> if l == "floats"
                               then xmobarAction "xdotool key super+shift+grave" "1" l
                               else xmobarAction "xdotool key super+grave" "1" l
@@ -194,6 +200,13 @@ myXMobarPP = def
 
 ----------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------
+
+initializeStorage :: X ()
+initializeStorage = do
+    XS.put (WorkspacesStorage $ wsLabels myWorkspaces)
+    ----------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------
+
 
 baseXConfig :: XConfig (Choose Tall (Choose (Mirror Tall) Full))
 baseXConfig = def { modMask     = myModKey

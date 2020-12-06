@@ -14,6 +14,7 @@ module Custom.Util.XMobar
     -- * XMobar Integration
       xmobarEscape
     , xmobarMulti
+    , xmobarClickableWSFormatter
     , XMobarConfig(..)
     )
 where
@@ -32,7 +33,8 @@ import           XMonad.Hooks.ManageDocks                 ( avoidStruts
                                                           , docks
                                                           , AvoidStruts
                                                           )
-import           XMonad.Hooks.DynamicLog                  ( dynamicLogWithPP
+import           XMonad.Hooks.DynamicLog                  ( xmobarAction
+                                                          , dynamicLogWithPP
                                                           , PP(..)
                                                           )
 import           XMonad.Layout.LayoutModifier             ( ModifiedLayout(..) )
@@ -52,6 +54,12 @@ data XMobarConfig = PipedXMobar String String -- ^ A piped XMobar instance with 
                   | UnPipedXMobar String      -- ^ A simple XMobar instance with a config file
                                               --   only.
 
+-- | A formatter for 'Custom.Workspaces.Workspaces'.
+--   Let workspaces be 1-indexed, and the left click on \"i\"-th workspace tag, is bound to a key
+--   press of \"Super + i\".
+xmobarClickableWSFormatter :: (Int, String) -> String
+xmobarClickableWSFormatter (i, ws) =
+    xmobarAction ("xdotool key super+" ++ show i) "1" (xmobarEscape ws)
 
 -- | Escape special characters in XMobar.
 xmobarEscape :: String -> String

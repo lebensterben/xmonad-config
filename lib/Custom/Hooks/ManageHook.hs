@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 ----------------------------------------------------------------------------------------------------
 -- |
 -- Module      : Custom.Hooks.ManageHook
@@ -15,18 +16,21 @@ module Custom.Hooks.ManageHook
     )
 where
 
-import           Custom.Variables                         ( myWorkspaces )
-import           Custom.Workspaces                        ( wsLabels )
-import           XMonad                                   ( XConfig(manageHook)
-                                                          , (-->)
+import           Custom.Workspaces                        ( wsFind )
+import           XMonad                                   ( (-->)
                                                           , (=?)
                                                           , className
+                                                          , composeAll
                                                           , doFloat
                                                           , doShift
+                                                          , idHook
+                                                          , liftX
                                                           , title
+                                                          , XConfig(manageHook)
                                                           )
-import           XMonad.ManageHook                        ( composeAll )
-import           XMonad.Hooks.ManageHelpers               ( composeOne
+import           XMonad.Hooks.ManageHelpers               ( (-->>)
+                                                          , (</=?)
+                                                          , composeOne
                                                           , doCenterFloat
                                                           , doFullFloat
                                                           , isDialog
@@ -54,13 +58,13 @@ myManageHook conf = conf
                        , transience' -- send transient window to its parent
                        , composeOne -- send windows to designated ws
                           -- Note: using @doShift ( workspaces !! i)@ sends program to workspace @i + 1@
-                           [ title =? "Mozilla Firefox" -?> doShift (wsLabels myWorkspaces !! 1)
+                           [ title =? "Mozilla Firefox" -?> shiftIfFoundWS "www"
                            -- , className =? "mpv" --> doShift (workspaces !! 7)
-                           , className =? "Hexchat" -?> doShift (wsLabels myWorkspaces !! 5)
-                           , className =? "Gitter" -?> doShift (wsLabels myWorkspaces !! 5)
-                           , className =? "Element" -?> doShift (wsLabels myWorkspaces !! 5)
-                           , className =? "vlc" -?> doShift (wsLabels myWorkspaces !! 7)
-                           , className =? "Gimp" -?> doShift (wsLabels myWorkspaces !! 8) >> doFloat
+                           , className =? "Hexchat" -?> shiftIfFoundWS "chat"
+                           , className =? "Gitter" -?> shiftIfFoundWS "chat"
+                           , className =? "Element" -?> shiftIfFoundWS "chat"
+                           , className =? "vlc" -?> shiftIfFoundWS "vid"
+                           , className =? "Gimp" -?> shiftIfFoundWS "gfx" >> doFloat
                            -- FIXME: I don't have virtual box
                            -- , title =? "Oracle VM VirtualBox Manager" --> doFloat
                            -- , className =? "VirtualBox Manager" --> doShift (workspaces !! 4)
@@ -69,3 +73,8 @@ myManageHook conf = conf
                        -- ,namedScratchpadManageHook myScratchPads
                        ]
     }
+  where
+    shiftIfFoundWS x = liftX (wsFind x) </=? Nothing -->> shiftOnJust
+    shiftOnJust = \case
+        Just a  -> doShift a
+        Nothing -> idHook
