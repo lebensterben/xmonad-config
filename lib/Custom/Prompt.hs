@@ -72,15 +72,19 @@ calcPrompt c ans = inputPrompt c (trim ans)
     ?+ \input ->
            liftIO (runProcessWithInput "qalc" ["-c=off"] input) >>= calcPrompt c . (!! 2) . lines
 
--- TODO: Add AppLauncher and other prompts
 -- | A list of prompts and a key press assigned to them.
 --
 -- * [@m@] : A prompt for manpages.
 -- * [@s@] : A ssh prompt.
 -- * [@=@] : A calculator prompt.
-spawnPrompt :: [(String, X ())]
-spawnPrompt = [ (k, f $ promptConfig CompletionOff) | (k, f) <- promptProviders ]
-    where promptProviders = [("m", manPrompt), ("s", sshPrompt), ("=", flip calcPrompt "qalc")]
+spawnPrompt :: [(String, String, X ())]
+spawnPrompt = [ (k, dscr, f $ promptConfig CompletionOff) | (k, dscr, f) <- promptProviders ]
+  where
+    promptProviders =
+        [ ("m", "Manpage Prompt", manPrompt)
+        , ("s", "SSH Prompt"    , sshPrompt)
+        , ("=", "Qalc Prompt"   , flip calcPrompt "qalc")
+        ]
 
 -- | A list of search and a key press assigne to them.
 -- * [@a@] : Arch Wiki.
@@ -113,10 +117,13 @@ searchProviders =
                               "https://github.com/clearlinux-pkgs?type=source&language=&q="
 
 -- | A list of search actions via each search engine, and a key assinged to it.
-searchWithInput :: [(String, X ())]
+searchWithInput :: [(String, String, X ())]
 searchWithInput =
-    [ (k, S.promptSearch (promptConfig CompletionOff) f) | (k, f) <- searchProviders ]
+    [ (k, name, S.promptSearch (promptConfig CompletionOff) f)
+    | (k, f@(SearchEngine name _)) <- searchProviders
+    ]
 
 -- | Similar to 'searchWithInput' excpet that the query is the current selection.
-searchWithSelection :: [(String, X ())]
-searchWithSelection = [ (k, S.selectSearch f) | (k, f) <- searchProviders ]
+searchWithSelection :: [(String, String, X ())]
+searchWithSelection =
+    [ (k, name, S.selectSearch f) | (k, f@(SearchEngine name _)) <- searchProviders ]

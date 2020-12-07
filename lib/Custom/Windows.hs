@@ -15,7 +15,7 @@ module Custom.Windows
     , swapWindow
     ,
 
-    -- * Window Resizign
+    -- * Window Resizing
       shrinkWindowTo
     )
 where
@@ -38,15 +38,16 @@ import           XMonad.Util.Types                        ( Direction2D(..) )
 focusWindow :: String                  -- ^ Prefix keys, ends with a \"-\", e.g. @"M-C-"@
             -> [(String, Direction2D)] -- ^ Lists of keys-directions pairs, e.g.
                                        --   @[("h", L), ("j", D)]@
-            -> [(String, X ())]
-focusWindow prefix bindings = [ (prefix ++ key, windowGo dir False) | (key, dir) <- bindings ]
+            -> [(String, Direction2D, X ())]
+focusWindow prefix bindings = [ (prefix ++ key, dir, windowGo dir False) | (key, dir) <- bindings ]
 
 -- | Swap focused window with another window in that direction.
 swapWindow :: String                  -- ^ Prefix keys, ends with a \"-\", e.g. @"M-C-"@
            -> [(String, Direction2D)] -- ^ Lists of keys-directions pairs, e.g.
                                       --   @[("h", L), ("j", D)]@
-           -> [(String, X ())]
-swapWindow prefix bindings = [ (prefix ++ key, windowSwap dir False) | (key, dir) <- bindings ]
+           -> [(String, Direction2D, X ())]
+swapWindow prefix bindings =
+    [ (prefix ++ key, dir, windowSwap dir False) | (key, dir) <- bindings ]
 
 ----------------------------------------------------------------------------------------------------
 -- Window Resizing
@@ -57,9 +58,11 @@ swapWindow prefix bindings = [ (prefix ++ key, windowSwap dir False) | (key, dir
 --   focus would be shrinked horizontally to left, and other would be expanded accordingly.
 shrinkWindowTo :: String                  -- ^ Prefix keys, ends with a \"-\", e.g. @"M-C-"@
                -> [(String, Direction2D)] -- ^ Lists of keys-directions pairs, e.g.
-               -> [(String, X ())]        --   @[("h", L), ("j", D)]@
+                                          --   @[("h", L), ("j", D)]@
+               -> [(String, Direction2D, X ())]
 shrinkWindowTo prefix bindings =
     [ ( prefix ++ key
+      , dir
       , case dir of
           L -> sendMessage Shrink
           R -> sendMessage Expand

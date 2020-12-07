@@ -12,6 +12,7 @@ module Custom.Util.Apps where
 
 import           Data.Default                             ( Default(..) )
 
+-- TODO
 data App = App {
     executable :: String,  -- ^ Name of the program, or full path to the executable.
     description :: String, -- ^ Description.
@@ -26,4 +27,4 @@ instance Default App where
         App { executable = undefined, description = "", evalFlag = "", evalWrapper = \_ _ _ -> "" }
 
 data DefaultApps = DefaultApps
-    {myTerminal, myBrowser, myEditor :: [String]}
+    {myTerminal, myBrowser, myFileManager, myEditor :: [String]}

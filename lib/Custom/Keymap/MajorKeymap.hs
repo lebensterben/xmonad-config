@@ -5,16 +5,17 @@
 -- License     : BSD3
 -- Maintainer  : Lucius Hu <lebensterben@users.noreply.github.com>
 --
--- Defines the keymap for the main interface.
+-- Defines the global keymap.
 ----------------------------------------------------------------------------------------------------
 
-module Custom.Keymap.MajorKeymap (majorKeymap) where
+module Custom.Keymap.MajorKeymap (myMajorKeymap) where
 
 import           Custom.GridSelect                        ( gridWS
                                                           , gridGoTo
                                                           , gridBring
                                                           , gridSpawn
                                                           )
+import           Custom.Keymap                            ( mkNamedKeymapSection )
 import           Custom.Prompt                            ( confirmExit
                                                           , shellPrompt
                                                           , spawnPrompt
@@ -22,10 +23,8 @@ import           Custom.Prompt                            ( confirmExit
                                                           , searchWithSelection
                                                           )
 import           Custom.TreeSelect                        ( treeSelect )
+import           Custom.Util.Apps                         ( DefaultApps(..) )
 import           Custom.Variables                         ( myWorkspaces
-                                                          , myBrowser
-                                                          , myTerminal
-                                                          , myEditor
                                                           , openWith
                                                           )
 import           Custom.Windows                           ( focusWindow
@@ -40,7 +39,10 @@ import           Custom.Workspaces                        ( moveToWS
                                                           , shiftToScreen
                                                           , WSFilter(..)
                                                           )
-import           XMonad                                   ( spawn
+import           Data.List                                ( foldl' )
+import           XMonad                                   ( KeySym
+                                                          , KeyMask
+                                                          , spawn
                                                           , sendMessage
                                                           , windows
                                                           , withFocused
@@ -68,7 +70,6 @@ import           XMonad.Layout.Spacing                    ( incScreenSpacing
                                                           , decWindowSpacing
                                                           )
 import           XMonad.Layout.SubLayouts                 ( onGroup
-                                                          , pushGroup
                                                           , GroupMsg(..)
                                                           )
 import qualified XMonad.Layout.ToggleLayouts             as T
@@ -76,20 +77,26 @@ import qualified XMonad.StackSet                         as W
 import           XMonad.Util.Types                        ( Direction1D(..)
                                                           , Direction2D(..)
                                                           )
+import           XMonad.Util.NamedActions                 ( (^++^)
+                                                          , NamedAction
+                                                          )
+
+----------------------------------------------------------------------------------------------------
 
 -- | Manage XMonad
 --
 -- [@M-x S-r@]: Restart XMonad.
 -- [@M-x S-H-q@]: Quit XMonad.
-xmonadManagement :: [(String, X ())]
-xmonadManagement =
-    [ ("M-x " ++ k, v)
-    | (k, v) <-
-        [ ("M-r", spawn "xmonad --recompile && xmonad --restart")
-        , ("M-M4-q", confirmExit)
--- ++ [("M-x M-h", spawn ("echo " ++ show keyHelp ++ " | xmessage -file -"))] -- TODO
-        ]
-    ]
+xmonadManagement :: XConfig l -> (String, [(String, String, X ())])
+xmonadManagement _ =
+    ( "XMonad"
+    , [ ("M-x " ++ k, dscr, v)
+      | (k, dscr, v) <-
+          [ ("M-r", "Restart XMonad", spawn "xmonad --recompile && xmonad --restart")
+          , ("M-M4-q", "Quit XMonad"   , confirmExit)
+          ]
+      ]
+    )
 
 -- | Window Navigation Keys
 --
@@ -99,16 +106,20 @@ xmonadManagement =
 -- [@M-S-m@]: Swap focused window with master window
 -- [@M-r@]: Rotate all windows except master
 -- [@M-S-r@]: Rotate all windows
-windowNavigation :: [(String, X ())]
-windowNavigation = concat
-    [ focusWindow "M-" [("h", L), ("j", D), ("k", U), ("l", R)]
-    , swapWindow "M-S-" [("h", L), ("j", D), ("k", U), ("l", R)]
-    , [ ("M-m"  , windows W.focusMaster)
-      , ("M-S-m", swapHybrid' False)
-      , ("M-r"  , rotUnfocusedDown)
-      , ("M-S-r", rotAllDown)
-      ]
-    ]
+windowNavigation :: XConfig l -> (String, [(String, String, X ())])
+windowNavigation _ =
+    ( "Window Navigation"
+    , concat
+        [ map (\(k, dir, x) -> (k, "Move focus to " ++ show dir, x)) $ focusWindow "M-" d2mapping
+        , map (\(k, dir, x) -> (k, "Swap focus to " ++ show dir, x)) $ swapWindow "M-S-" d2mapping
+        , [ ("M-m"  , "Focus master window" , windows W.focusMaster)
+          , ("M-S-m", "Swap master window"  , swapHybrid' False)
+          , ("M-r"  , "Rotate other windows", rotUnfocusedDown)
+          , ("M-S-r", "Rotate all window"   , rotAllDown)
+          ]
+        ]
+    )
+    where d2mapping = [("h", L), ("j", D), ("k", U), ("l", R)]
 
 -- | Workspace Navigation Keys
 --
@@ -118,76 +129,128 @@ windowNavigation = concat
 -- [@M-S-C-\<h, l>@]: Move focused window to the screen in that direction.
 -- [@M-<1..9>@]: Jump to i-th workspace.
 -- [@M-S-<1..9>@]: Bring focused window to i-th workspace.
-workspaceNavigation :: [(String, X ())]
-workspaceNavigation = concat
-    [ moveToWS "M-C-" [("j", Next), ("k", Prev)] NonScratchPad
-    , shiftToWS "M-S-C-" [("j", Next), ("k", Prev)] NonScratchPad
-    , moveToScreen "M-C-" [("h", Prev), ("l", Next)]
-    , shiftToScreen "M-S-C-" [("h", Prev), ("l", Next)]
-    , moveToWS' myWorkspaces "M-"
-    , shiftToWS' myWorkspaces "M-S-"
-    ]
+workspaceNavigation :: XConfig l -> (String, [(String, String, X ())])
+workspaceNavigation _ =
+    ( "Workspace Navigation"
+    , concat
+        [ map (\(k, dir, x) -> (k, "Go to " ++ show dir ++ "WS", x))
+            $ moveToWS "M-C-" d1wsmapping NonScratchPad
+        , map (\(k, dir, x) -> (k, "Shift focused to " ++ show dir ++ "WS", x))
+            $ shiftToWS "M-S-C-" d1wsmapping NonScratchPad
+        , map (\(k, dir, x) -> (k, "Go to " ++ show dir ++ "Screnn", x))
+            $ moveToScreen "M-C-" d1scmapping
+        , map (\(k, dir, x) -> (k, "Shift focused to " ++ show dir ++ "Screen", x))
+            $ shiftToScreen "M-S-C-" d1scmapping
+        , map (\(k, i, x) -> (k, "Go to " ++ show i ++ "-th WS", x)) $ moveToWS' myWorkspaces "M-"
+        , map (\(k, i, x) -> (k, "Shift focused to " ++ show i ++ "-th WS", x))
+            $ shiftToWS' myWorkspaces "M-S-"
+        ]
+    )
+  where
+    d1wsmapping = [("j", Next), ("k", Prev)]
+    d1scmapping = [("h", Prev), ("l", Next)]
 
 -- | Window Resizing Keys
 --
 -- [@M-M1-\<h, j, k, l>@]: Resizing by shrinking windows on the specified direction w.r.t
 -- current focus.
-windowResize :: [(String, X ())]
-windowResize = shrinkWindowTo "M-M1-" [("h", L), ("j", D), ("k", U), ("l", R)]
+windowResize :: XConfig l -> (String, [(String, String, X ())])
+windowResize _ =
+    ( "Window Resize"
+    , map (\(k, dir, x) -> (k, "Shrink window on the " ++ show dir, x))
+        $ shrinkWindowTo "M-M1-" [("h", L), ("j", D), ("k", U), ("l", R)]
+    )
 
--- | Window Spacing
+-- | Border Spacing
 --
--- [@M-\<-, =>@]: Decrease\/Increase Window Gap
--- [@M-S-\<-, =>@]: Decrease\/Increase Screen Gap
-windowSpacing :: [(String, X ())]
-windowSpacing =
-    [ ("M--"  , decWindowSpacing 4)
-    , ("M-="  , incWindowSpacing 4)
-    , ("M-S--", decScreenSpacing 4)
-    , ("M-S-=", incScreenSpacing 4)
-    ]
+-- [@M-\<-, =>@]: Decrease\/Increase window gap.
+-- [@M-S-\<-, =>@]: Decrease\/Increase screen gap.
+borderSpacing :: XConfig l -> (String, [(String, String, X ())])
+borderSpacing _ =
+    ( "Border Spacing"
+    , [ ("M--"  , "Increase window gap", decWindowSpacing 4)
+      , ("M-="  , "Decrease window gap", incWindowSpacing 4)
+      , ("M-S--", "Increase screen gap", decScreenSpacing 4)
+      , ("M-S-=", "Decrease screen gap", incScreenSpacing 4)
+      ]
+    )
 
--- | Layout control
+-- | Kill Windows
+--
+-- [@M-q@]: Kill focused window.
+-- [@M-S-q@]: Kill all windows on current workspace.
+killWindow :: XConfig l -> (String, [(String, String, X ())])
+killWindow _ =
+    ( "Kill Windows"
+    , [("M-q", "Kill focused window", kill1), ("M-S-q", "Kill all windows on current WS", killAll)]
+    )
+
+-- | Layout Commands
 --
 -- [@M-\<Tab>@]: Switch to next layout.
 -- [@M-S-\<Tab>@]: Reset current layout.
--- [@M-\<F11>@]: Toggle fullscreen.
--- [@M-S-\<F11>@]: Toggle struts.
+-- [@M-\<F11>@]: Toggle fullscreen with struts.
+-- [@M-S-\<F11>@]: Toggle struts without struts.
 -- [@M-\<KP_Add\/KP_Subtract>@]: Increase\/Decrease number of master windows.
 -- [@M-S-\<KP_Add\/KP_Subtract>@]: Increase\/Decrease number of visible windows.
-layoutCommands :: [(String, X ())]
-layoutCommands =
-    [ ( "M-`"               -- Switch to next layout
-      , sendMessage NextLayout
-      )
-    , ( "M-S-`"             -- Toggles 'floats' layout
-      , sendMessage (T.Toggle "floats")
-      )
-    , ( "M-s"               -- Un-float focued window
-      , withFocused $ windows . W.sink
-      )
-    , ( "M-S-s"             -- Un-float all windows in current ws
-      , sinkAll
-      )
-    , ( "M-<F11>"           -- Toggles fullscreen
-      , sendMessage (MT.Toggle NBFULL) >> sendMessage ToggleStruts
-      )
-    , ( "M-S-<F11>"         -- Toggles struts
-      , sendMessage ToggleStruts
-      )
-    , ( "M-<KP_Add>"        -- Increase number of clients in master pane
-      , sendMessage (IncMasterN 1)
-      )
-    , ( "M-<KP_Subtract>"   -- Decrease number of clients in master pane
-      , sendMessage (IncMasterN (-1))
-      )
-    , ( "M-S-<KP_Add>"      -- Increase number of windows
-      , increaseLimit
-      )
-    , ( "M-S-<KP_Subtract>" -- Decrease number of windows
-      , decreaseLimit
-      )
-    ]
+layoutCmds :: XConfig l -> (String, [(String, String, X ())])
+layoutCmds _ =
+    ( "Layouts"
+    , [ ("M-`"    , "Cycle layouts"                 , sendMessage NextLayout)
+      , ("M-S-`"  , "Toggles 'floats' layout"       , sendMessage (T.Toggle "floats"))
+      , ("M-s"    , "Sink focued window"            , withFocused $ windows . W.sink)
+      , ("M-S-s"  , "Sink all windows in current WS", sinkAll)
+      , ("M-<F11>", "Toggles fullscreen w/ struts"  , sendMessage (MT.Toggle NBFULL))
+      , ( "M-S-<F11>"
+        , "Toggles fullscreen w/o struts"
+        , sendMessage (MT.Toggle NBFULL) >> sendMessage ToggleStruts
+        )
+      , ("M-<KP_Add>"       , "More master windows"  , sendMessage (IncMasterN 1))
+      , ("M-<KP_Subtract>"  , "Fewer master windows" , sendMessage (IncMasterN (-1)))
+      , ("M-S-<KP_Add>"     , "More visible windows" , increaseLimit)
+      , ("M-S-<KP_Subtract>", "Fewer visible windows", decreaseLimit)
+      ]
+    )
+
+-- | Sublayout Commands
+--
+-- [@M-C-m@]: Merge all windows.
+-- [@M-C-u@]: Unmerge focused window.
+-- [@M-C-S-u@]: Unmerge all windows.
+-- [@M-\[@]: Previous tab.
+-- [@M-\]@]: Next tab
+subLayoutCmds :: XConfig l -> (String, [(String, String, X ())])
+subLayoutCmds _ =
+    ( "Sub Layouts"
+    , [ ("M-C-m"  , "Merge all"      , withFocused (sendMessage . MergeAll))
+      , ("M-C-u"  , "Unmerge focused", withFocused (sendMessage . UnMerge))
+      , ("M-C-S-u", "Unmerge all"    , withFocused (sendMessage . UnMergeAll))
+      , ("M-["    , "Previous tab"   , onGroup W.focusUp')
+      , ("M-]"    , "Next tab"       , onGroup W.focusDown')
+      ]
+    )
+
+-- | Grid Select
+--
+-- [@M-o@]: Grid select launcher.
+-- [@M-g@]: Grid select go to window.
+-- [@M-S-g@]: Grid select bring window.
+-- [@M-C-g@]: Grid select go to workspace
+gridSelectMenu :: XConfig l -> (String, [(String, String, X ())])
+gridSelectMenu _ =
+    ( "Grid Select"
+    , [ ("M-o"  , "Grid Select: Apps"             , gridSpawn)
+      , ("M-g"  , "Grid Select: Go to window"     , gridBring)
+      , ("M-S-g", "Grid Select: Bring window"     , gridGoTo)
+      , ("M-C-g", "Grid Selected: Go to workspace", gridWS)
+      ]
+    )
+
+-- | Tree Select
+--
+-- [@M-t@]: Tree select.
+treeSelectMenu :: XConfig l -> (String, [(String, String, X ())])
+treeSelectMenu c = ("Tree Select", [("M-t", "Tree Select", treeSelect c)])
 
 -- | Spawning Prompts
 --
@@ -211,80 +274,81 @@ layoutCommands =
 --     [@t@]: Thesaurus.
 --     [@y@]: Youtube.
 --     [@$@]: Amazon.
-promptCommands :: [(String, X ())]
-promptCommands = concat
-    [ [("M-S-<Return>", shellPrompt)] -- shell prompt
-    , [ ("M-<Space> " ++ k, f)        -- other xmonad prompts
-      | (k, f) <- spawnPrompt
+promptCommands :: XConfig l -> (String, [(String, String, X ())])
+promptCommands _ =
+    ( "Prompts"
+    , concat
+        [ [("M-S-<Return>", "Shell Prompt", shellPrompt)]
+        , [ ("M-<Space> " ++ k, dscr, f) | (k, dscr, f) <- spawnPrompt ]
+        , [ ("M-/ " ++ k, "Search on " ++ name, f) | (k, name, f) <- searchWithInput ]
+        , [ ("M-S-/ " ++ k, "Search w/ selection on " ++ name, f)
+          | (k, name, f) <- searchWithSelection
+          ]
+        ]
+    )
+
+-- TODO: Still expanding
+-- | Quick Launch
+--
+-- [@M-\<Return>@]: Open terminal.
+-- [@M-b@]: Open browser.
+-- [@M-f@]: Open file manager.
+-- [@M-S-\<Esc>@]: Open Htop.
+quickLaunch :: XConfig l -> (String, [(String, String, X ())])
+quickLaunch _ =
+    ( "Quick Launch"
+    , [ ("M-<Return>", "Open terminal"    , openWith myTerminal [])
+      , ("M-b"       , "Open browser"     , openWith myBrowser [])
+      , ("M-f"       , "Open file manager", openWith myFileManager [])
+      , ("M-S-<Esc>" , "Open htop"        , openWith myTerminal ["htop"])
       ]
-    , [ ("M-/ " ++ k, f)              -- search engines
-      | (k, f) <- searchWithInput
+    )
+
+-- | Emacs Commands
+--
+-- [@M-e e@]: Open Emacs.
+-- [@M-e b@]: List Emacs buffers.
+-- [@M-e d@]: Dired.
+-- [@M-e i@]: erc.
+-- [@M-e m@]: mu4e.
+-- [@M-e n@]: Elfeed.
+emacsCmds :: XConfig l -> (String, [(String, String, X ())])
+emacsCmds _ =
+    ( "Emacs"
+    , [ ("M-e e", "Open Emacs"        , openWith myEditor [])
+      , ("M-e b", "List Emacs buffers", openWith myEditor ["'(ibuffer)'"])
+      , ("M-e d", "Dired"             , openWith myEditor ["'(dired nil)'"])
+      , ("M-e i", "Emacs IRC"         , openWith myEditor ["'(erc)'"])
+      , ("M-e m", "mu4e"              , openWith myEditor ["'(mu4e)'"])
+      , ("M-e n", "Elfeed RSS"        , openWith myEditor ["'(elfeed)'"])
       ]
-    , [ ("M-S-/ " ++ k, f)            -- search engines w/ current selection
-      | (k, f) <- searchWithSelection
-      ]
+    )
+
+----------------------------------------------------------------------------------------------------
+-- Major Keymap
+----------------------------------------------------------------------------------------------------
+
+-- | A tree of key-sequence-to-named-actions pairs.
+--
+-- Note: The order matters here, as it determines the output of 'Custom.Keymap.showKeyBindings'.
+myMajorKeymap :: XConfig l -> [((KeyMask, KeySym), NamedAction)]
+myMajorKeymap conf = foldl'
+    (\x xs -> x ^++^ uncurry mkNamedKeymapSection (xs conf) conf)
+    []
+    [ xmonadManagement
+    , windowNavigation
+    , workspaceNavigation
+    , windowResize
+    , borderSpacing
+    , killWindow
+    , layoutCmds
+    , subLayoutCmds
+    , gridSelectMenu
+    , treeSelectMenu
+    , promptCommands
+    , quickLaunch
+    , emacsCmds
     ]
-
-
--- TODO
--- | A tree of key-sequence-to-actions pairs.
-majorKeymap :: XConfig l -> [(String, X ())]
-majorKeymap conf = concat
-    [ [
-        -- Quick Launch
-        ( "M-<Return>"                -- Launch Shell
-        , openWith myTerminal []
-        )
-      , ( "M-b"                       -- Firefox
-        , openWith myBrowser []
-        )
-      , ( "M-S-<Esc>"                 -- Htop
-        , openWith myTerminal ["htop"]
-        )
-
-        -- Kill windows
-      , ( "M-q"                       -- Kill the currently focused window
-        , kill1
-        )
-      , ( "M-S-q"                     -- Kill all windows on current workspace
-        , killAll
-        )
-
-      -- Grid Select
-      , ( "M-g g"                     -- Grid select favorite apps
-        , gridSpawn
-        )
-      , ( "M-g t"                     -- Go to selected window and its ws
-        , gridBring
-        )
-      , ( "M-g b"                     -- Bring selected window to current ws
-        , gridGoTo
-        )
-      , ( "M-<Tab>"                   -- Go to selected workspace
-        , gridWS
-        )
-
-      -- Tree Select
-      , ( "M-t"                       -- Open tree select menu
-        , treeSelect conf
-        )
-
-    -- Sublayouts
-    -- This is used to push windows to tabbed sublayouts, or pull them out of it.
-           -- FIXME: The following are not working
-      , ("M-<L>"  , sendMessage $ pushGroup L)
-      , ("M-<R>"  , sendMessage $ pushGroup R)
-      , ("M-<U>"  , sendMessage $ pushGroup U)
-      , ("M-<D>"  , sendMessage $ pushGroup D)
-      , ("M-C-m"  , withFocused (sendMessage . MergeAll))
-      , ("M-C-u"  , withFocused (sendMessage . UnMerge))
-      , ("M-C-S-u", withFocused (sendMessage . UnMergeAll))
-      , ( "M-["
-        , onGroup W.focusUp'
-        )    -- Switch focus to prev tab
-      , ( "M-]"
-        , onGroup W.focusDown'
-        )  -- Switch focus to next tab
 
     -- FIXME: I don't use mocp
     -- Scratchpads
@@ -300,38 +364,6 @@ majorKeymap conf = concat
         -- , ( "M-u <Space>"
         --   , spawn "mocp --toggle-pause"
         --   )
-
-    -- Emacs (Super-e followed by a key)
-      , ( "M-e e"
-        , openWith myEditor []
-        )                            -- start emacs
-      , ( "M-e b"
-        , openWith myEditor ["'(ibuffer)'"]
-        )         -- list emacs buffers
-      , ( "M-e d"
-        , openWith myEditor ["'(dired nil)'"]
-        )       -- dired emacs file manager
-      , ( "M-e i"
-        , openWith myEditor ["'(erc)'"]
-        )             -- erc emacs irc client
-      , ( "M-e m"
-        , openWith myEditor ["'(mu4e)'"]
-        )            -- mu4e emacs email client
-      , ( "M-e n"
-        , openWith myEditor ["'(elfeed)'"]
-        )          -- elfeed emacs rss client
-      , ( "M-e s"
-        , openWith myEditor ["'(eshell)'"]
-        )          -- eshell within emacs
-      , ( "M-e t"
-        , openWith myEditor ["'(mastodon)'"]
-        )        -- mastodon within emacs
-        -- emms is an emacs audio player. I set it to auto start playing in a specific directory.
-      , ( "M-e a"
-        , openWith
-            myEditor
-            ["'(emms)'", "'(emms-play-directory-tree \"~/Music/Non-Classical/70s-80s/\")'"]
-        )
 
     -- FIXME
     --- My Applications (Super+Alt+Key)
@@ -368,12 +400,10 @@ majorKeymap conf = concat
         -- , ("<XF86Calculator>", runOrRaise "gcalctool" (resource =? "gcalctool"))
         -- , ("<XF86Eject>"           , spawn "toggleeject")
         -- , ("<Print>"               , spawn "scrotd 0")
-      ]
-    , xmonadManagement
-    , windowNavigation
-    , workspaceNavigation
-    , windowResize
-    , windowSpacing
-    , layoutCommands
-    , promptCommands
-    ]
+        -- \^++^ xmonadManagement
+        -- \^++^ windowNavigation
+        -- \^++^ workspaceNavigation
+        -- \^++^ windowResize
+        -- \^++^ windowSpacing
+        -- \^++^ layoutCommands
+        -- \^++^ promptCommands

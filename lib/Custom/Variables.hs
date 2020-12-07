@@ -148,9 +148,10 @@ myWorkspaces = Workspaces
 ----------------------------------------------------------------------------------------------------
 
 myDefaultApps :: DefaultApps
-myDefaultApps = DefaultApps { myTerminal = ["alacritty", "-e"]
-                            , myBrowser  = ["firefox", ""]
-                            , myEditor   = ["emacsclient -c -a=emacs", "--eval"]
+myDefaultApps = DefaultApps { myTerminal    = ["alacritty", "-e"]
+                            , myBrowser     = ["firefox", ""]
+                            , myFileManager = ["nautilus", ""]
+                            , myEditor      = ["emacsclient -c -a=emacs", "--eval"]
                             }
 
 openWith :: MonadIO m => (DefaultApps -> [String]) -> [String] -> m ()
@@ -203,8 +204,8 @@ myXMobarPP = def
 
 initializeStorage :: X ()
 initializeStorage = do
-    XS.put (WorkspacesStorage $ wsLabels myWorkspaces)
-    ----------------------------------------------------------------------------------------------------
+    XS.put (WorkspacesStorage $ wsLbls myWorkspaces)
+----------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------
 
 

@@ -19,8 +19,8 @@ import           Custom.Hooks.WindowNavigationHook        ( windowNavigationHook
 import           Custom.MouseBindings                     ( installMouseBindings
                                                           , myMouseBindings
                                                           )
-import           Custom.Keymap                            ( installMajorKeysP )
-import           Custom.Keymap.MajorKeymap                ( majorKeymap )
+import           Custom.Keymap                            ( installNamedMajorKeys )
+import           Custom.Keymap.MajorKeymap                ( myMajorKeymap )
 import           Custom.Layouts                           ( ComplexFloat
                                                           , LayoutSelection
                                                           , ComplexTall
@@ -110,8 +110,8 @@ myXConfig =
         . myHandleEventHook
         . myLogHook
         . myLayoutHook
-        . flip installMouseBindings myMouseBindings
-        . flip installMajorKeysP    majorKeymap
+        . flip installMouseBindings  myMouseBindings
+        . flip installNamedMajorKeys myMajorKeymap
         $ baseXConfig
 -- handleEventHook
 -- Run xmonad commands from command line with "xmonadctl command". Commands include:

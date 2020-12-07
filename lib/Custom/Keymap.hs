@@ -10,9 +10,15 @@
 
 module Custom.Keymap
     (
-    -- * Utility function for adding key bindings
-      additionalTSKeysP
-    , installMajorKeysP
+      -- * Utility function for adding global bindings
+      mkNamedKeymapSection
+    , installNamedMajorKeys
+
+      -- * Utility function for displaying global bindings
+    , showKeyBindings
+
+      -- * Utility function for adding tree select bindings
+    , additionalTSKeysP
     )
 where
 
@@ -31,9 +37,9 @@ import           Text.ParserCombinators.ReadP             ( (+++)
                                                           , ReadP
                                                           )
 import           XMonad                                   ( X
-                                                          , KeyMask
                                                           , KeySym
-                                                          , XConfig(keys, modMask)
+                                                          , XConfig(modMask)
+                                                          , KeyMask
                                                           , Layout
                                                           , controlMask
                                                           , mod1Mask
@@ -42,19 +48,67 @@ import           XMonad                                   ( X
                                                           , mod4Mask
                                                           , mod5Mask
                                                           , shiftMask
+                                                          , xK_F1
+                                                          , io
                                                           , (.|.)
                                                           )
 import qualified XMonad.Actions.TreeSelect               as TS
-import           XMonad.Util.EZConfig                     ( mkKeymap
+import           XMonad.Util.EZConfig                     ( mkNamedKeymap
                                                           , parseKey
                                                           )
+import           XMonad.Util.NamedActions                 ( noName
+                                                          , separator
+                                                          , subtitle
+                                                          , showKm
+                                                          , addName
+                                                          , NamedAction
+                                                          , addDescrKeys'
+                                                          )
+import           XMonad.Util.Run                          ( safeSpawn )
 
 ----------------------------------------------------------------------------------------------------
 -- Utility function for installing global bindings
 ----------------------------------------------------------------------------------------------------
 
-installMajorKeysP :: XConfig l -> (XConfig Layout -> [(String, X ())]) -> XConfig l
-installMajorKeysP conf keyList = conf { keys = \c -> mkKeymap c $ keyList c }
+-- | Generates a named keybindings section with descriptions.
+--
+-- This essentially combines the functionality of 'XMonad.Util.EZConfig.mkNamedKeymap', 'subtitle',
+-- and 'separator'.
+mkNamedKeymapSection :: String                   -- ^ An optional subtitle of this section.
+                     -> [(String, String, X ())] -- ^ A list of binding-description-action tripples.
+                     -> XConfig l                -- ^ A 'XConfig' used to determine proper modifie
+                                                 --   key.
+                     -> [((KeyMask, KeySym), NamedAction)]
+mkNamedKeymapSection st ks conf | st == ""  = mkNamedKeymap conf keymap
+                                | otherwise = subtitle st : separator : mkNamedKeymap conf keymap
+    where keymap = map (\(k, desc, x) -> (k, if desc == "" then noName x else addName desc x)) ks
+
+-- | Replace the keybindings in a 'XConfig' with the supplied one.
+installNamedMajorKeys :: XConfig l -- ^ The original 'XConfig' that is modified upon.
+                      -> (XConfig Layout -> [((KeyMask, KeySym), NamedAction)])
+                                   -- ^ A list of binding-description-action tripples
+                      -> XConfig l
+installNamedMajorKeys conf keyList =
+    addDescrKeys' ((modMask conf, xK_F1), showKeyBindings) keyList conf
+
+----------------------------------------------------------------------------------------------------
+-- Utility function for displaying global bindings
+----------------------------------------------------------------------------------------------------
+
+-- | Display all available global key bindings.
+showKeyBindings :: [((KeyMask, KeySym), NamedAction)] -> NamedAction
+showKeyBindings x = addName "Show Keybindings" $ io $ do
+    _ <- safeSpawn
+        "gxmessage"
+        [ "-default"
+        , "okay"
+        , "-name"
+        , "F1 Keybindings"
+        , "-fn"
+        , "Iosevka SS08 16"
+        , unlines $ showKm x
+        ]
+    return ()
 
 ----------------------------------------------------------------------------------------------------
 -- Utility function for adding keybindings to tree-select navigation

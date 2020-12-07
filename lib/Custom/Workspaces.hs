@@ -62,7 +62,10 @@ import           XMonad.Util.Types                        ( Direction1D(..) )
 ----------------------------------------------------------------------------------------------------
 
 -- Currently only store wsLbls, and don't support dynamic workspaces yet
--- TODO: doc
+-- | A storage for workspace raw labels.
+--
+-- Needs to be initialised during starting up, via 'XMonad.Util.ExtensibleState.put', and can be
+-- retrieved via 'XMonad.Util.ExtensibleState.get'.
 newtype WorkspacesStorage = WorkspacesStorage [WorkspaceId] deriving Typeable
 instance ExtensionClass WorkspacesStorage where
     initialValue = WorkspacesStorage []
@@ -93,8 +96,9 @@ wsLabels wss = zipWith (curry $ formatter wss) [1 .. length lbls] lbls where lbl
 wsFind :: WorkspaceId -> X (Maybe WorkspaceId)
 wsFind x = do
     (WorkspacesStorage wss) <- XS.get
-    withWindowSet $ \ws ->
-        return $ let curWSs = W.tag <$> W.workspaces ws in (curWSs !!) <$> elemIndex x wss
+    withWindowSet $ \ws -> do
+        let curWSs = W.tag <$> W.workspaces ws
+        return $ (curWSs !!) <$> elemIndex x wss
 
 ----------------------------------------------------------------------------------------------------
 -- Workspaces Filter
@@ -122,16 +126,16 @@ moveToWS :: String                  -- ^ Prefix keys, ends with a \"-\", e.g. @"
          -> [(String, Direction1D)] -- ^ Lists of keys-directions pairs, e.g.
                                     --   @[("h", L), ("j", D)]@
          -> WSFilter                -- ^ Filters for candidate workspaces.
-         -> [(String, X ())]
+         -> [(String, Direction1D, X ())]
 moveToWS prefix bindings fil =
-    [ (prefix ++ key, moveTo dir $ filterWS fil) | (key, dir) <- bindings ]
+    [ (prefix ++ key, dir, moveTo dir $ filterWS fil) | (key, dir) <- bindings ]
 
 -- | Assign \"Prefix-[1..9]\" keys for switching to i-th workspace.
-moveToWS' :: Workspaces              -- ^ Workspaces used in current config
-          -> String                  -- ^ Prefix keys, ends with a \"-\", e.g. @"M-C-"@
-          -> [(String, X ())]
+moveToWS' :: Workspaces -- ^ Workspaces used in current config
+          -> String     -- ^ Prefix keys, ends with a \"-\", e.g. @"M-C-"@
+          -> [(String, Int, X ())]
 moveToWS' wss prefix =
-    [ (prefix ++ show index, windows $ W.greedyView ws)
+    [ (prefix ++ show index, index, windows $ W.greedyView ws)
     | let wsl = wsLabels wss
     , (ws, index) <- zip wsl [1 .. length wsl]
     ]
@@ -142,17 +146,17 @@ shiftToWS :: String                  -- ^ Prefix keys, ends with a \"-\", e.g. @
           -> [(String, Direction1D)] -- ^ Lists of keys-directions pairs, e.g.
                                      --   @[("h", L), ("j", D)]@
           -> WSFilter                -- ^ Filters for candidate workspaces.
-          -> [(String, X ())]
+          -> [(String, Direction1D, X ())]
 shiftToWS prefix bindings fil =
-    [ (prefix ++ key, shiftTo dir wsFilter >> moveTo dir wsFilter) | (key, dir) <- bindings ]
+    [ (prefix ++ key, dir, shiftTo dir wsFilter >> moveTo dir wsFilter) | (key, dir) <- bindings ]
     where wsFilter = filterWS fil
 
 -- | Assign \"Prefix-[1..9]\" keys for shifting focused window and follow it to i-th workspace.
-shiftToWS' :: Workspaces              -- ^ Workspaces used in current config
-           -> String                  -- ^ Prefix keys, ends with a \"-\", e.g. @"M-C-"@
-           -> [(String, X ())]
+shiftToWS' :: Workspaces -- ^ Workspaces used in current config
+           -> String     -- ^ Prefix keys, ends with a \"-\", e.g. @"M-C-"@
+           -> [(String, Int, X ())]
 shiftToWS' wss prefix =
-    [ (prefix ++ show index, windows (W.shift ws) >> windows (W.greedyView ws))
+    [ (prefix ++ show index, index, windows (W.shift ws) >> windows (W.greedyView ws))
     | let wsl = wsLabels wss
     , (ws, index) <- zip wsl [1 .. length wsl]
     ]
@@ -165,17 +169,20 @@ shiftToWS' wss prefix =
 moveToScreen :: String                  -- ^ Prefix keys, ends with a \"-\", e.g. @"M-C-"@
              -> [(String, Direction1D)] -- ^ Lists of keys-directions pairs, e.g.
                                         --   @[("h", L), ("j", D)]@
-             -> [(String, X ())]
+             -> [(String, Direction1D, X ())]
 moveToScreen prefix bindings =
-    [ (prefix ++ key, if dir == Prev then prevScreen else nextScreen) | (key, dir) <- bindings ]
+    [ (prefix ++ key, dir, if dir == Prev then prevScreen else nextScreen)
+    | (key, dir) <- bindings
+    ]
 
 -- | Move the focused window to the specified direction and keep the window under focus.
 shiftToScreen :: String                  -- ^ Prefix keys, ends with a \"-\", e.g. @"M-C-"@
               -> [(String, Direction1D)] -- ^ Lists of keys-directions pairs, e.g.
                                          --   @[("h", L), ("j", D)]@
-              -> [(String, X ())]
+              -> [(String, Direction1D, X ())]
 shiftToScreen prefix bindings =
     [ ( prefix ++ key
+      , dir
       , if dir == Prev then shiftPrevScreen >> prevScreen else shiftNextScreen >> nextScreen
       )
     | (key, dir) <- bindings
