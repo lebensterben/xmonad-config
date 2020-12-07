@@ -9,7 +9,7 @@
 ----------------------------------------------------------------------------------------------------
 module Custom.Hooks.StartupHook
     (
-    -- * Startup Hook
+      -- * Startup Hook
       myStartupHook
     )
 where
@@ -28,8 +28,6 @@ import           XMonad.Util.SpawnOnce                    ( spawnOnce )
 startUpApps :: [String]
 startUpApps =
     [ "/usr/local/bin/picom"                                        -- compositior
-    -- , "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"   -- polkit daemon
-    -- , "gnome-keyring-daemon -r --components=gpg,pkcs11,secrets,ssh" -- keyring daemon
     , "/usr/libexec/gsd-xsettings"                                  -- gtk settings daemon
     , "nm-applet"                                                   -- network tray icon
     , "/usr/local/bin/volumeicon"                                   -- volume tray icon

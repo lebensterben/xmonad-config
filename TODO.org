@@ -43,9 +43,11 @@
    CLOSED: [2020-12-02 Wed 02:32]
 ** TODO Custom.ShowWName [0/1]
 *** TODO Rename to =Custom.LayoutModifier.ShowWName=?
-** TODO Custom.TreeSelect
+** TODO Custom.TreeSelect [0/1]
+*** NEXT Tree Select show message
 ** TODO Custom.Util [1/4]
-*** TODO Custom.Util.Apps
+*** TODO Custom.Util.Apps [0/1]
+**** TODO Replace ~spawn~ with ~safeSpawn~
 *** DONE Custom.Util.Font
     CLOSED: [2020-12-02 Wed 08:56]
 *** TODO Custom.Util.Color

@@ -11,13 +11,14 @@
 
 module Custom.Hooks.ManageHook
     (
-    -- * Manage Hook
+      -- * Manage Hook
       myManageHook
     )
 where
 
 import           Custom.Workspaces                        ( wsFind )
-import           XMonad                                   ( (-->)
+import           XMonad                                   ( (<||>)
+                                                          , (-->)
                                                           , (=?)
                                                           , className
                                                           , composeAll
@@ -43,8 +44,7 @@ import           XMonad.Hooks.ManageHelpers               ( (-->>)
 -- Mangage Hook
 ----------------------------------------------------------------------------------------------------
 
--- | TODO
--- Actions to run when a new window is opened.
+-- | Actions to run when a new window is opened.
 --
 -- * If the new window wants to fill the fullscreen, makes it a float window
 -- * If the new window is a dialog, make it a centered float window
@@ -57,7 +57,6 @@ myManageHook conf = conf
                        , isDialog --> doCenterFloat -- Float Dialog
                        , transience' -- send transient window to its parent
                        , composeOne -- send windows to designated ws
-                          -- Note: using @doShift ( workspaces !! i)@ sends program to workspace @i + 1@
                            [ title =? "Mozilla Firefox" -?> shiftIfFoundWS "www"
                            -- , className =? "mpv" --> doShift (workspaces !! 7)
                            , className =? "Hexchat" -?> shiftIfFoundWS "chat"
@@ -65,6 +64,8 @@ myManageHook conf = conf
                            , className =? "Element" -?> shiftIfFoundWS "chat"
                            , className =? "vlc" -?> shiftIfFoundWS "vid"
                            , className =? "Gimp" -?> shiftIfFoundWS "gfx" >> doFloat
+                           , className =? "Xmessage" <||> className =? "Gxmessage" -?> doCenterFloat
+                           , className =? "Ulauncher" -?> doCenterFloat
                            -- FIXME: I don't have virtual box
                            -- , title =? "Oracle VM VirtualBox Manager" --> doFloat
                            -- , className =? "VirtualBox Manager" --> doShift (workspaces !! 4)

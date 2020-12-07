@@ -1,3 +1,4 @@
+-- TODO: doc
 module Custom.MouseBindings (installMouseBindings, myMouseBindings) where
 
 import qualified Data.Map                                as M
