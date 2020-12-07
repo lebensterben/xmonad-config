@@ -78,4 +78,4 @@
    #+BEGIN_SRC shell :eval no-export :results none :exports none
 cabal new-haddock --haddock-all
 hoogle generate --database=/home/lucius/.xmonad/xmonad.hoo --local=/home/lucius/.xmonad/dist-newstyle/build/x86_64-linux/ghc-8.8.4/xmonad-config-0.1.0.0/x/xmonadcfg/doc/html/xmonad-config/xmonadcfg
-#+END_SRC
+   #+END_SRC
