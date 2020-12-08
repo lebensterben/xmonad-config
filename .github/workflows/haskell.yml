@@ -40,11 +40,10 @@ jobs:
             ${{ runner.os }}-
 
       - name: Run hlint
+        uses: "domdere/haskell-lint-action@master"
         if: ${{ github.ref == 'refs/heads/develop' }}
-        run: |
-          cabal update
-          cabal install hlint
-          hlint -g
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install system dependencies
         run: sudo apt-get install libxrandr-dev libxss-dev
