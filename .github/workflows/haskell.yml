@@ -40,7 +40,7 @@ jobs:
             ${{ runner.os }}-
 
       - name: Run hlint
-        if: ${{ github.ref == 'ref/tags/develop' }}
+        if: ${{ github.ref == 'refs/tags/develop' }}
         run: |
           cabal update
           cabal install hlint
@@ -58,5 +58,5 @@ jobs:
         run: cabal build --enable-tests -j4 all
 
       - name: Run tests
-        if: ${{ github.ref == 'ref/tags/develop' }}
+        if: ${{ github.ref == 'refs/tags/develop' }}
         run: cabal test all
