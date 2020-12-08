@@ -44,6 +44,7 @@ jobs:
         run: |
           cabal update
           cabal install hlint
+          hlint -g
 
       - name: Install system dependencies
         run: sudo apt-get install libxrandr-dev libxss-dev
