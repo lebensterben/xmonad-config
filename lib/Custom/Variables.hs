@@ -52,7 +52,6 @@ import           XMonad                                   ( gets
                                                               , workspaces
                                                               )
                                                           , Default(def)
-                                                          , spawn
                                                           , MonadIO
                                                           , Choose
                                                           , Full
@@ -66,6 +65,9 @@ import           XMonad.Hooks.DynamicLog                  ( wrap
                                                           )
 import qualified XMonad.StackSet                         as W
 import qualified XMonad.Util.ExtensibleState             as XS
+import           XMonad.Util.Run                          ( safeSpawn
+                                                          , safeSpawnProg
+                                                          )
 
 ----------------------------------------------------------------------------------------------------
 -- Modifier keys
@@ -147,6 +149,7 @@ myWorkspaces = Workspaces
 -- Default Apps
 ----------------------------------------------------------------------------------------------------
 
+-- TODO: evaluation flag!!
 myDefaultApps :: DefaultApps
 myDefaultApps = DefaultApps { myTerminal    = ["alacritty", "-e"]
                             , myBrowser     = ["firefox", ""]
@@ -155,8 +158,8 @@ myDefaultApps = DefaultApps { myTerminal    = ["alacritty", "-e"]
                             }
 
 openWith :: MonadIO m => (DefaultApps -> [String]) -> [String] -> m ()
-openWith prog []   = spawn . head $ prog myDefaultApps
-openWith prog args = spawn . unwords $ p : [ q ++ " " ++ r | r <- args ]
+openWith prog []   = safeSpawnProg . head $ prog myDefaultApps
+openWith prog args = safeSpawn p [ q ++ " " ++ r | r <- args ]
   where
     p = head $ prog myDefaultApps
     q = prog myDefaultApps !! 1

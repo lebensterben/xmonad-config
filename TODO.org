@@ -46,8 +46,9 @@
 ** TODO Custom.TreeSelect [0/1]
 *** NEXT Tree Select show message
 ** TODO Custom.Util [1/4]
-*** TODO Custom.Util.Apps [0/1]
-**** TODO Replace ~spawn~ with ~safeSpawn~
+*** TODO Custom.Util.Apps [1/1]
+**** DONE Replace ~spawn~ with ~safeSpawn~
+     CLOSED: [2020-12-07 Mon 23:02]
 *** DONE Custom.Util.Font
     CLOSED: [2020-12-02 Wed 08:56]
 *** TODO Custom.Util.Color
@@ -65,6 +66,7 @@
 ** TODO Rename customization variables to =my*=
 ** TODO Add variables such as workspaces formatter into Global
 ** TODO Check ~XMonad.Actions.DynamicProjects~ or ~XMonad.Actions.TopicSpace~
+*** TODO Use dynamic work dir for cmds such as emacs dired
 ** TODO The ~workspaces Clickable !! i~ is not ergonomic (still valid)
 ** TODO Check other layouts
 ** TODO Integrate 1Password to replace ~XMonad.Prompt.Pass~?

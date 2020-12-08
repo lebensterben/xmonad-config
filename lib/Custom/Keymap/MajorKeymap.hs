@@ -42,7 +42,6 @@ import           Custom.Workspaces                        ( moveToWS
 import           Data.List                                ( foldl' )
 import           XMonad                                   ( KeySym
                                                           , KeyMask
-                                                          , spawn
                                                           , sendMessage
                                                           , windows
                                                           , withFocused
@@ -77,6 +76,7 @@ import qualified XMonad.StackSet                         as W
 import           XMonad.Util.NamedActions                 ( (^++^)
                                                           , NamedAction
                                                           )
+import           XMonad.Util.Run                          ( safeSpawn )
 import           XMonad.Util.Types                        ( Direction1D(..)
                                                           , Direction2D(..)
                                                           )
@@ -92,8 +92,11 @@ xmonadManagement _ =
     ( "XMonad"
     , [ ("M-x " ++ k, dscr, v)
       | (k, dscr, v) <-
-          [ ("M-r", "Restart XMonad", spawn "xmonad --recompile && xmonad --restart")
-          , ("M-M4-q", "Quit XMonad"   , confirmExit)
+          [ ( "M-r"
+            , "Restart XMonad"
+            , safeSpawn "xmonad" ["--recompile"] >> safeSpawn "xmonad" ["--restart"]
+            )
+          , ("M-M4-q", "Quit XMonad", confirmExit)
           ]
       ]
     )

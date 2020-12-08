@@ -11,36 +11,41 @@ import           System.Exit                              ( exitSuccess )
 import           XMonad                                   ( XConfig
                                                           , X
                                                           , io
-                                                          , spawn
                                                           )
 import qualified XMonad.Actions.TreeSelect               as TS
+import           XMonad.Util.Run                          ( safeSpawn
+                                                          , safeSpawnProg
+                                                          )
 
 treeSelect :: XConfig l -> X ()
 treeSelect conf = TS.treeselectAction
     (treeSelectConfig conf)
     [ Node
         (TS.TSNode "+ Accessories" "Accessory applications" (return ()))
-        [ Node (TS.TSNode "Archive Manager" "Tool for archived packages" $ spawn "file-roller") []
+        [ Node
+            (TS.TSNode "Archive Manager" "Tool for archived packages" $ safeSpawnProg "file-roller")
+            []
         , Node
             ( TS.TSNode "Calculator" "Gui version of qalc"
-            $ spawn "flatpak run io.github.Qalculate.desktop"
+            $ safeSpawn "flatpak" ["run", "io.github.Qalculate.desktop"]
             )
             []
         , Node
-            ( TS.TSNode "Picom Toggle on/off" "Compositor for window managers"
-            $ spawn "killall picom; /usr/local/bin/picom"
+            (  TS.TSNode "Picom Toggle on/off" "Compositor for window managers"
+            $  safeSpawn "killall" ["picom"]
+            >> safeSpawnProg "/usr/local/bin/picom"
             )
             []
         ]
     , Node
         (TS.TSNode "+ Graphics" "graphics programs" (return ()))
-        [ Node (TS.TSNode "Gimp" "GNU image manipulation program" $ spawn "gimp") []
-        , Node (TS.TSNode "Inkscape" "An SVG editing program" $ spawn "inkscape") []
+        [ Node (TS.TSNode "Gimp" "GNU image manipulation program" $ safeSpawnProg "gimp") []
+        , Node (TS.TSNode "Inkscape" "An SVG editing program" $ safeSpawnProg "inkscape") []
         ]
     , Node
         (TS.TSNode "+ Internet" "internet and web programs" (return ()))
-        [ Node (TS.TSNode "Firefox" "Open source web browser" $ spawn "firefox")          []
-        , Node (TS.TSNode "Thunderbird" "Open source email client" $ spawn "thunderbird") []
+        [ Node (TS.TSNode "Firefox" "Open source web browser" $ safeSpawnProg "firefox")          []
+        , Node (TS.TSNode "Thunderbird" "Open source email client" $ safeSpawnProg "thunderbird") []
         ]
     , Node
         (TS.TSNode "+ Multimedia" "sound and video applications" (return ()))
@@ -49,11 +54,11 @@ treeSelect conf = TS.treeselectAction
             $ openWith myTerminal ["alsamixer"]
             )
             []
-        , Node (TS.TSNode "Audacious" "Lightweight audio player" $ spawn "audacious") []
-        , Node (TS.TSNode "VLC" "Multimedia player and server" $ spawn "vlc")         []
+        , Node (TS.TSNode "Audacious" "Lightweight audio player" $ safeSpawnProg "audacious") []
+        , Node (TS.TSNode "VLC" "Multimedia player and server" $ safeSpawnProg "vlc")         []
         ]
     , Node (TS.TSNode "+ Office" "office applications" (return ()))
-           [Node (TS.TSNode "Evince" "PDF Viewer" $ spawn "evince") []]
+           [Node (TS.TSNode "Evince" "PDF Viewer" $ safeSpawnProg "evince") []]
     , Node
         (TS.TSNode "+ Programming" "programming and scripting tools" (return ()))
         [ Node
@@ -73,12 +78,11 @@ treeSelect conf = TS.treeselectAction
                 []
             , Node
               -- FIXME
-                ( TS.TSNode "M-x emms" "Emacs"
-                $ openWith
-                      myEditor
-                      [ "'(emms)'"
-                      , "'(emms-play-directory-tree \"~/Music/Non-Classical/70s-80s/\")'"
-                      ]
+                (TS.TSNode "M-x emms" "Emacs" $ openWith
+                    myEditor
+                    [ "'(emms)'"
+                    , "'(emms-play-directory-tree \"/home/lucius/Music/Non-Classical/70s-80s/\")'"
+                    ]
                 )
                 []
             , Node
@@ -99,26 +103,17 @@ treeSelect conf = TS.treeselectAction
         , Node (TS.TSNode "iPython" "A better Python Shell" $ openWith myTerminal ["ipython"]) []
         , Node
             ( TS.TSNode "Jupyter Lab" "An extensible computational environment for Jupyter"
-            $ spawn "jupyter-lab"
+            $ safeSpawnProg "jupyter-lab"
             )
             []
-        , Node (TS.TSNode "RStudio" "R Development IDE" $ spawn "rstudio") []
-        , Node (TS.TSNode "VSCode" "Code Editing" $ spawn "vscode")        []
-        , Node (TS.TSNode "Zeal" "Documentation Browser" $ spawn "zeal")   []
+        , Node (TS.TSNode "RStudio" "R Development IDE" $ safeSpawnProg "rstudio") []
+        , Node (TS.TSNode "VSCode" "Code Editing" $ safeSpawnProg "vscode")        []
+        , Node (TS.TSNode "Zeal" "Documentation Browser" $ safeSpawnProg "zeal")   []
         ]
     , Node
         (TS.TSNode "+ System" "system tools and utilities" (return ()))
-        [ Node (TS.TSNode "Dired" "Emacs file manager" $ spawn "xxx")                            []
-        , Node (TS.TSNode "Glances" "Terminal system monitor" $ openWith myTerminal ["glances"]) []
+        [ Node (TS.TSNode "Glances" "Terminal system monitor" $ openWith myTerminal ["glances"]) []
         , Node (TS.TSNode "Htop" "Terminal process viewer" $ openWith myTerminal ["htop"])       []
-        , Node
-            ( TS.TSNode "Alacritty" "A cross-platform, GPU enhanced terminal emulator"
-            $ spawn "alacritty"
-            )
-            []
-        , Node
-            (TS.TSNode "Kitty" "Fast, featureful, GPU based terminal emulator" $ spawn "kitty")
-            []
         ]
     , Node (TS.TSNode "---------------------------------" "" (return ())) []
     , Node
@@ -298,7 +293,7 @@ treeSelect conf = TS.treeselectAction
                     []
                 , Node
                     ( TS.TSNode "Hoogle" "Haskell API search engine"
-                    $ spawn "https://hoogle.haskell.org/"
+                    $ openWith myBrowser ["https://hoogle.haskell.org/"]
                     )
                     []
                 , Node
@@ -475,17 +470,17 @@ treeSelect conf = TS.treeselectAction
         (TS.TSNode "+ Screenshots" "take a screenshot" (return ()))
         [ Node
             ( TS.TSNode "Quick fullscreen" "take screenshot immediately"
-            $ spawn "scrot -d 1 ~/scrot/%Y-%m-%d-@%H-%M-%S-scrot.png"
+            $ safeSpawn "scrot" ["-d", "1", "/home/lucius/scrot/%Y-%m-%d-@%H-%M-%S-scrot.png"]
             )
             []
         , Node
             ( TS.TSNode "Delayed fullscreen" "take screenshot in 5 secs"
-            $ spawn "scrot -d 5 ~/scrot/%Y-%m-%d-@%H-%M-%S-scrot.png"
+            $ safeSpawn "scrot" ["-d", "5", "/home/lucius/scrot/%Y-%m-%d-@%H-%M-%S-scrot.png"]
             )
             []
         , Node
             ( TS.TSNode "Section screenshot" "take screenshot of section"
-            $ spawn "scrot -s ~/scrot/%Y-%m-%d-@%H-%M-%S-scrot.png"
+            $ safeSpawn "scrot" ["-s", "/home/lucius/scrot/%Y-%m-%d-@%H-%M-%S-scrot.png"]
             )
             []
         ]
@@ -494,35 +489,107 @@ treeSelect conf = TS.treeselectAction
         (TS.TSNode "+ XMonad" "window manager commands" (return ()))
         [ Node
             (TS.TSNode "+ View Workspaces" "View a specific workspace" (return ()))
-            [ Node (TS.TSNode "View 1" "View workspace 1" $ spawn "~/.xmonad/xmonadctl 1")  []
-            , Node (TS.TSNode "View 2" "View workspace 2" $ spawn "~/.xmonad/xmonadctl 3")  []
-            , Node (TS.TSNode "View 3" "View workspace 3" $ spawn "~/.xmonad/xmonadctl 5")  []
-            , Node (TS.TSNode "View 4" "View workspace 4" $ spawn "~/.xmonad/xmonadctl 7")  []
-            , Node (TS.TSNode "View 5" "View workspace 5" $ spawn "~/.xmonad/xmonadctl 9")  []
-            , Node (TS.TSNode "View 6" "View workspace 6" $ spawn "~/.xmonad/xmonadctl 11") []
-            , Node (TS.TSNode "View 7" "View workspace 7" $ spawn "~/.xmonad/xmonadctl 13") []
-            , Node (TS.TSNode "View 8" "View workspace 8" $ spawn "~/.xmonad/xmonadctl 15") []
-            , Node (TS.TSNode "View 9" "View workspace 9" $ spawn "~/.xmonad/xmonadctl 17") []
+            [ Node
+                ( TS.TSNode "View 1" "View workspace 1"
+                $ safeSpawn "/home/lucius/.xmonad/xmonadctl" ["1"]
+                )
+                []
+            , Node
+                ( TS.TSNode "View 2" "View workspace 2"
+                $ safeSpawn "/home/lucius/.xmonad/xmonadctl" ["3"]
+                )
+                []
+            , Node
+                ( TS.TSNode "View 3" "View workspace 3"
+                $ safeSpawn "/home/lucius/.xmonad/xmonadctl" ["5"]
+                )
+                []
+            , Node
+                ( TS.TSNode "View 4" "View workspace 4"
+                $ safeSpawn "/home/lucius/.xmonad/xmonadctl" ["7"]
+                )
+                []
+            , Node
+                ( TS.TSNode "View 5" "View workspace 5"
+                $ safeSpawn "/home/lucius/.xmonad/xmonadctl" ["9"]
+                )
+                []
+            , Node
+                ( TS.TSNode "View 6" "View workspace 6"
+                $ safeSpawn "/home/lucius/.xmonad/xmonadctl" ["11"]
+                )
+                []
+            , Node
+                ( TS.TSNode "View 7" "View workspace 7"
+                $ safeSpawn "/home/lucius/.xmonad/xmonadctl" ["13"]
+                )
+                []
+            , Node
+                ( TS.TSNode "View 8" "View workspace 8"
+                $ safeSpawn "/home/lucius/.xmonad/xmonadctl" ["15"]
+                )
+                []
+            , Node
+                ( TS.TSNode "View 9" "View workspace 9"
+                $ safeSpawn "/home/lucius/.xmonad/xmonadctl" ["17"]
+                )
+                []
             ]
         , Node
             (TS.TSNode "+ Shift Workspaces" "Send focused window to specific workspace" (return ()))
-            [ Node (TS.TSNode "View 1" "View workspace 1" $ spawn "~/.xmonad/xmonadctl 2")  []
-            , Node (TS.TSNode "View 2" "View workspace 2" $ spawn "~/.xmonad/xmonadctl 4")  []
-            , Node (TS.TSNode "View 3" "View workspace 3" $ spawn "~/.xmonad/xmonadctl 6")  []
-            , Node (TS.TSNode "View 4" "View workspace 4" $ spawn "~/.xmonad/xmonadctl 8")  []
-            , Node (TS.TSNode "View 5" "View workspace 5" $ spawn "~/.xmonad/xmonadctl 10") []
-            , Node (TS.TSNode "View 6" "View workspace 6" $ spawn "~/.xmonad/xmonadctl 12") []
-            , Node (TS.TSNode "View 7" "View workspace 7" $ spawn "~/.xmonad/xmonadctl 14") []
-            , Node (TS.TSNode "View 8" "View workspace 8" $ spawn "~/.xmonad/xmonadctl 16") []
-            , Node (TS.TSNode "View 9" "View workspace 9" $ spawn "~/.xmonad/xmonadctl 18") []
+            [ Node
+                ( TS.TSNode "View 1" "View workspace 1"
+                $ safeSpawn "/home/lucius/.xmonad/xmonadctl" ["2"]
+                )
+                []
+            , Node
+                ( TS.TSNode "View 2" "View workspace 2"
+                $ safeSpawn "/home/lucius/.xmonad/xmonadctl" ["4"]
+                )
+                []
+            , Node
+                ( TS.TSNode "View 3" "View workspace 3"
+                $ safeSpawn "/home/lucius/.xmonad/xmonadctl" ["6"]
+                )
+                []
+            , Node
+                ( TS.TSNode "View 4" "View workspace 4"
+                $ safeSpawn "/home/lucius/.xmonad/xmonadctl" ["8"]
+                )
+                []
+            , Node
+                ( TS.TSNode "View 5" "View workspace 5"
+                $ safeSpawn "/home/lucius/.xmonad/xmonadctl" ["10"]
+                )
+                []
+            , Node
+                ( TS.TSNode "View 6" "View workspace 6"
+                $ safeSpawn "/home/lucius/.xmonad/xmonadctl" ["12"]
+                )
+                []
+            , Node
+                ( TS.TSNode "View 7" "View workspace 7"
+                $ safeSpawn "/home/lucius/.xmonad/xmonadctl" ["14"]
+                )
+                []
+            , Node
+                ( TS.TSNode "View 8" "View workspace 8"
+                $ safeSpawn "/home/lucius/.xmonad/xmonadctl" ["16"]
+                )
+                []
+            , Node
+                ( TS.TSNode "View 9" "View workspace 9"
+                $ safeSpawn "/home/lucius/.xmonad/xmonadctl" ["18"]
+                )
+                []
             ]
         , Node
             ( TS.TSNode "Next layout" "Switch to next layout"
-            $ spawn "~/.xmonad/xmonadctl next-layout"
+            $ safeSpawn "/home/lucius/.xmonad/xmonadctl" ["next-layout"]
             )
             []
-        , Node (TS.TSNode "Recompile" "Recompile XMonad" $ spawn "xmonad --recompile") []
-        , Node (TS.TSNode "Restart" "Restart XMonad" $ spawn "xmonad --restart")       []
-        , Node (TS.TSNode "Quit" "Restart XMonad" (io exitSuccess))                    []
+        , Node (TS.TSNode "Recompile" "Recompile XMonad" $ safeSpawn "xmonad" ["--recompile"]) []
+        , Node (TS.TSNode "Restart" "Restart XMonad" $ safeSpawn "xmonad" ["--restart"])       []
+        , Node (TS.TSNode "Quit" "Restart XMonad" (io exitSuccess))                            []
         ]
     ]

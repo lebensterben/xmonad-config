@@ -22,8 +22,7 @@ import           Custom.Configs.GridSelectConfig          ( gridConfigString
                                                           , gridConfigWindow
                                                           , gridContent
                                                           )
-import           XMonad                                   ( spawn
-                                                          , whenJust
+import           XMonad                                   ( whenJust
                                                           , withWindowSet
                                                           , windows
                                                           , X
@@ -31,6 +30,7 @@ import           XMonad                                   ( spawn
 import qualified XMonad.Actions.GridSelect               as GS
 import           XMonad.Hooks.DynamicLog                  ( xmobarStrip )
 import qualified XMonad.StackSet                         as W
+import           XMonad.Util.Run                          ( safeSpawn )
 
 ----------------------------------------------------------------------------------------------------
 -- Grid Select Menus
@@ -38,7 +38,7 @@ import qualified XMonad.StackSet                         as W
 
 -- | A Grid Select menu for launching applications.
 gridSpawn :: X ()
-gridSpawn = GS.gridselect gridConfigString gridContent >>= (`whenJust` spawn)
+gridSpawn = GS.gridselect gridConfigString gridContent >>= (`whenJust` uncurry safeSpawn)
 
 -- | A Grid Select menu for switching focus to window.
 gridGoTo :: X ()
