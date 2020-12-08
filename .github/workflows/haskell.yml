@@ -49,5 +49,5 @@ jobs:
       - name: Build
         run: cabal build --enable-tests -j4 all
       - name: Run tests
-        if: ${{ github.ref == "ref/tags/develop" }}
+        if: ${{ github.ref == 'ref/tags/develop' }}
         run: cabal test all
