@@ -21,7 +21,8 @@ where
 
 import           Data.List                                ( partition )
 import           Data.Maybe                               ( catMaybes )
-import           XMonad                                   ( Window
+import           XMonad                                   ( (<+>)
+                                                          , Window
                                                           , XConfig
                                                               ( layoutHook
                                                               , startupHook
@@ -83,7 +84,7 @@ xmobarMulti rc pp conf = docks $ conf
     , logHook     = do
         handles' <- mapM (\ ~(PipedXMobar _ p) -> getNamedPipe p) piped
         let handles = catMaybes handles'
-        logHook conf >> dynamicLogWithPP pp { ppOutput = \x -> mapM_ (`hPutStrLn` x) handles }
+        logHook conf <+> dynamicLogWithPP pp { ppOutput = \x -> mapM_ (`hPutStrLn` x) handles }
     }
   where
     (piped, unpiped) = partition

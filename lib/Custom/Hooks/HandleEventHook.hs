@@ -15,7 +15,8 @@ module Custom.Hooks.HandleEventHook
     )
 where
 
-import           XMonad                                   ( io
+import           XMonad                                   ( (<+>)
+                                                          , io
                                                           , XConfig(handleEventHook)
                                                           )
 import           XMonad.Hooks.EwmhDesktops                ( fullscreenEventHook )
@@ -29,7 +30,6 @@ import           XMonad.Layout.LayoutHints                ( hintsEventHook )
 -- Handle Event Hook
 ----------------------------------------------------------------------------------------------------
 
--- TODO: This is stil broken
 -- TODO: Doc is not complete
 -- | Handles an X event, s.t. unless it returns 'All True', other handlers will be skipped.
 -- Consists of following parts:
@@ -38,8 +38,8 @@ import           XMonad.Layout.LayoutHints                ( hintsEventHook )
 myHandleEventHook :: XConfig l -> XConfig l
 myHandleEventHook conf = conf
     { handleEventHook = serverModeEventHookCmd
-                        >> serverModeEventHook
-                        >> serverModeEventHookF "XMONAD_PRINT" (io . putStrLn)
-                        >> hintsEventHook
-                        >> fullscreenEventHook
+                        <+> serverModeEventHook
+                        <+> serverModeEventHookF "XMONAD_PRINT" (io . putStrLn)
+                        <+> hintsEventHook
+                        <+> fullscreenEventHook
     }
