@@ -17,9 +17,6 @@ where
 
 import           Custom.Keymap                            ( additionalTSKeysP )
 import           Custom.Keymap.TreeSelectKeymap           ( treeSelectKeymap )
-import           Custom.Variables                         ( myColor
-                                                          , myFontSet
-                                                          )
 import           Custom.Util.Color                        ( toARGBPix
                                                           , ColorScheme(..)
                                                           )
@@ -27,6 +24,9 @@ import           Custom.Util.Font                         ( Font(..)
                                                           , FontFace(..)
                                                           , FontWeight(..)
                                                           , FontSize(..)
+                                                          )
+import           Custom.Variables                         ( myColor
+                                                          , myFontSet
                                                           )
 import           XMonad                                   ( def
                                                           , XConfig

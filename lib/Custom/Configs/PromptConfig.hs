@@ -16,15 +16,15 @@ module Custom.Configs.PromptConfig
     )
 where
 
-import           Custom.Variables                         ( myBorderWidth
-                                                          , myColor
-                                                          , myFontSet
-                                                          )
 import           Custom.Util.Color                        ( ColorScheme(..) )
 import           Custom.Util.Font                         ( Font(..)
                                                           , FontFace(..)
                                                           , FontWeight(..)
                                                           , FontSize(..)
+                                                          )
+import           Custom.Variables                         ( myBorderWidth
+                                                          , myColor
+                                                          , myFontSet
                                                           )
 import           XMonad                                   ( def )
 import           XMonad.Prompt                            ( emacsLikeXPKeymap

@@ -74,11 +74,11 @@ import           XMonad.Layout.SubLayouts                 ( onGroup
                                                           )
 import qualified XMonad.Layout.ToggleLayouts             as T
 import qualified XMonad.StackSet                         as W
-import           XMonad.Util.Types                        ( Direction1D(..)
-                                                          , Direction2D(..)
-                                                          )
 import           XMonad.Util.NamedActions                 ( (^++^)
                                                           , NamedAction
+                                                          )
+import           XMonad.Util.Types                        ( Direction1D(..)
+                                                          , Direction2D(..)
                                                           )
 
 ----------------------------------------------------------------------------------------------------

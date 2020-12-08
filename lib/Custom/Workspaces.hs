@@ -36,8 +36,8 @@ module Custom.Workspaces
     )
 where
 
-import           Data.Maybe                               ( isJust )
 import           Data.List                                ( elemIndex )
+import           Data.Maybe                               ( isJust )
 import           XMonad                                   ( ExtensionClass(..)
                                                           , Typeable
                                                           , WorkspaceId
@@ -83,8 +83,7 @@ data Workspaces = Workspaces {
     }
 
 instance Show Workspaces where
-    show =
-        \wss -> "Workspaces { wsLbls = " ++ show (wsLbls wss) ++ ", formatter = /omitted/" ++ " }"
+    show wss = "Workspaces { wsLbls = " ++ show (wsLbls wss) ++ ", formatter = /omitted/" ++ " }"
 
 -- | Retrieve the list of workspaces labels, formatted with the formatter, and add xmobar actions
 --   according to whether it's clickable.

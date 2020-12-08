@@ -16,9 +16,6 @@ import           Custom.Hooks.LogHook                     ( myLogHook )
 import           Custom.Hooks.ManageHook                  ( myManageHook )
 import           Custom.Hooks.StartupHook                 ( myStartupHook )
 import           Custom.Hooks.WindowNavigationHook        ( windowNavigationHook )
-import           Custom.MouseBindings                     ( installMouseBindings
-                                                          , myMouseBindings
-                                                          )
 import           Custom.Keymap                            ( installNamedMajorKeys )
 import           Custom.Keymap.MajorKeymap                ( myMajorKeymap )
 import           Custom.Layouts                           ( ComplexFloat
@@ -27,6 +24,9 @@ import           Custom.Layouts                           ( ComplexFloat
                                                           , ComplexGrid
                                                           , ComplexThreeCol
                                                           , ComplexBinaryPartition
+                                                          )
+import           Custom.MouseBindings                     ( installMouseBindings
+                                                          , myMouseBindings
                                                           )
 import           Custom.ShowWName                         ( ShowWNameEscape )
 import           Custom.Util.XMobar                       ( xmobarMulti )
@@ -101,8 +101,7 @@ myXConfig :: XConfig
                        )
                  )
 myXConfig =
-    do
-            xmobarMulti xmobarrc myXMobarPP
+    xmobarMulti xmobarrc myXMobarPP
         . ewmh
         . windowNavigationHook
         . myStartupHook

@@ -20,12 +20,12 @@ module Custom.Windows
     )
 where
 
-import           XMonad.Actions.Navigation2D              ( windowGo
-                                                          , windowSwap
-                                                          )
 import           XMonad                                   ( X
                                                           , sendMessage
                                                           , Resize(Expand, Shrink)
+                                                          )
+import           XMonad.Actions.Navigation2D              ( windowGo
+                                                          , windowSwap
                                                           )
 import           XMonad.Layout.ResizableTile              ( MirrorResize(..) )
 import           XMonad.Util.Types                        ( Direction2D(..) )

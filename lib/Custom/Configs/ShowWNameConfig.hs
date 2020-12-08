@@ -15,14 +15,14 @@ module Custom.Configs.ShowWNameConfig
     )
 where
 
-import           Custom.Variables                         ( myColor
-                                                          , myFontSet
-                                                          )
 import           Custom.Util.Color                        ( ColorScheme(..) )
 import           Custom.Util.Font                         ( Font(..)
                                                           , FontFace(..)
                                                           , FontWeight(..)
                                                           , FontSize(..)
+                                                          )
+import           Custom.Variables                         ( myColor
+                                                          , myFontSet
                                                           )
 import           XMonad                                   ( def )
 import           XMonad.Layout.ShowWName                  ( SWNConfig(..) )

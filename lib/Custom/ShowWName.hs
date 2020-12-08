@@ -60,7 +60,7 @@ type ShowWNState = Maybe (TimerId, Window)
 data ShowWNameEscape a = SWN Bool SWNConfig ShowWNState deriving (Read, Show)
 
 instance LayoutModifier ShowWNameEscape a where
-    redoLayout sn r _ wrs = doShow sn r wrs
+    redoLayout sn r _ = doShow sn r
 
     handleMess (SWN _ c (Just (i, w))) m
         | Just e <- fromMessage m = handleTimer i e (deleteWindow w >> return Nothing)

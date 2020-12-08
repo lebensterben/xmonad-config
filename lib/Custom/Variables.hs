@@ -141,7 +141,7 @@ myWorkspaces = Workspaces
     { wsLbls    = ["dev", "www", "sys", "doc", "vbox", "chat", "mus", "vid", "gfx"]
     , formatter = xmobarClickableWSFormatter . spacing
     }
-    where spacing = \(i, ws) -> (i, " " ++ ws ++ " ")
+    where spacing (i, ws) = (i, " " ++ ws ++ " ")
 
 ----------------------------------------------------------------------------------------------------
 -- Default Apps
@@ -203,8 +203,7 @@ myXMobarPP = def
 ----------------------------------------------------------------------------------------------------
 
 initializeStorage :: X ()
-initializeStorage = do
-    XS.put (WorkspacesStorage $ wsLbls myWorkspaces)
+initializeStorage = XS.put (WorkspacesStorage $ wsLbls myWorkspaces)
 ----------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------
 

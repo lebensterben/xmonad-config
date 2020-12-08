@@ -19,16 +19,16 @@ module Custom.Configs.LayoutConfig
     )
 where
 
-import           Custom.Variables                         ( myBorderWidth
-                                                          , myColor
-                                                          , myFontSet
-                                                          , mySpacingWidth
-                                                          )
 import           Custom.Util.Color                        ( ColorScheme(..) )
 import           Custom.Util.Font                         ( Font(..)
                                                           , FontFace(..)
                                                           , FontWeight(..)
                                                           , FontSize(..)
+                                                          )
+import           Custom.Variables                         ( myBorderWidth
+                                                          , myColor
+                                                          , myFontSet
+                                                          , mySpacingWidth
                                                           )
 import           XMonad                                   ( def )
 import           XMonad.Layout.Decoration                 ( Theme(..) )

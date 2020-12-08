@@ -10,9 +10,6 @@
 
 module Custom.Configs.GridSelectConfig (gridConfigWindow, gridConfigString, gridContent) where
 
-import           Custom.Variables                         ( myColor
-                                                          , myFontSet
-                                                          )
 import           Custom.Util.Color                        ( toRGBTriple
                                                           , ColorScheme(..)
                                                           )
@@ -20,6 +17,9 @@ import           Custom.Util.Font                         ( Font(..)
                                                           , FontFace(..)
                                                           , FontWeight(..)
                                                           , FontSize(..)
+                                                          )
+import           Custom.Variables                         ( myColor
+                                                          , myFontSet
                                                           )
 import           XMonad                                   ( Window
                                                           , X

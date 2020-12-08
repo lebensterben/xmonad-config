@@ -1,3 +1,4 @@
+import           Control.Monad                            ( unless )
 import           Graphics.X11.Xlib                        ( allocaXEvent
                                                           , clientMessage
                                                           , defaultScreen
@@ -19,7 +20,6 @@ import           System.IO                                ( hPutStrLn
                                                           , isEOF
                                                           , stderr
                                                           )
-import           Control.Monad                            ( unless )
 
 main :: IO ()
 main = parse True "XMONAD_COMMAND" =<< getArgs
@@ -39,7 +39,7 @@ parse input addr args = case args of
        | otherwise -> return ()
 
 repl :: String -> IO ()
-repl addr = do
+repl addr =
     isEOF
         >>= (`unless` do
                 sendCommand addr =<< getLine

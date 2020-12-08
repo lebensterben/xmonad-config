@@ -23,6 +23,10 @@ import           Custom.Configs.PromptConfig              ( promptConfig
                                                           , AutoCompletion(..)
                                                           )
 import           System.Exit                              ( exitSuccess )
+import           XMonad                                   ( io
+                                                          , MonadIO(liftIO)
+                                                          , X
+                                                          )
 import           XMonad.Actions.Search                   as S
                                                           ( amazon
                                                           , google
@@ -37,10 +41,6 @@ import           XMonad.Actions.Search                   as S
                                                           , wikipedia
                                                           , youtube
                                                           , SearchEngine(..)
-                                                          )
-import           XMonad                                   ( io
-                                                          , MonadIO(liftIO)
-                                                          , X
                                                           )
 import           XMonad.Hooks.DynamicLog                  ( trim )
 import           XMonad.Prompt                            ( XPConfig )

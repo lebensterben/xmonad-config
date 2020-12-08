@@ -10,13 +10,13 @@
 
 module Custom.Util.Color where
 
-import           Control.Arrow
-import           XMonad.Hooks.DynamicLog                  ( xmobarColor )
-import           XMonad
-import           Data.Bits
+import           Control.Arrow                            ( Arrow((&&&), arr) )
+import           Data.Bits                                ( Bits(rotateR, shift, shiftR) )
 import           Data.Word                                ( Word32
                                                           , Word8
                                                           )
+import           XMonad                                   ( Pixel )
+import           XMonad.Hooks.DynamicLog                  ( xmobarColor )
 
 ----------------------------------------------------------------------------------------------------
 -- Color Scheme

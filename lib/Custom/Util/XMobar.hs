@@ -29,13 +29,13 @@ import           XMonad                                   ( Window
                                                               )
                                                           , LayoutClass
                                                           )
-import           XMonad.Hooks.ManageDocks                 ( avoidStruts
-                                                          , docks
-                                                          , AvoidStruts
-                                                          )
 import           XMonad.Hooks.DynamicLog                  ( xmobarAction
                                                           , dynamicLogWithPP
                                                           , PP(..)
+                                                          )
+import           XMonad.Hooks.ManageDocks                 ( avoidStruts
+                                                          , docks
+                                                          , AvoidStruts
                                                           )
 import           XMonad.Layout.LayoutModifier             ( ModifiedLayout(..) )
 import           XMonad.Util.Run                          ( hPutStrLn
