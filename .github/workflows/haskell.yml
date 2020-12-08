@@ -28,7 +28,7 @@ jobs:
           cabal-version: "3.0"
 
       - name: Cache
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         env:
           cache-name: cache-cabal
         with:
@@ -38,6 +38,9 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
+
+      - name: Install system dependencies
+        run: sudo apt-get install libxrandr-dev libxss-dev
 
       - name: Install dependencies
         run: |
