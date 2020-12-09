@@ -13,11 +13,12 @@ module Custom.Variables
     ( baseXConfig
     , myBorderWidth
     , inactiveWindowFadeAmount
+    , myDefaultApps
     , myTerminal
     , myBrowser
     , myEditor
+    , myFileManager
     , myColor
-    , openWith
     , mySpacingWidth
     , xmobarrc
     , myXMobarPP
@@ -27,7 +28,13 @@ module Custom.Variables
     )
 where
 
-import           Custom.Util.Apps                         ( DefaultApps(..) )
+import           Custom.Util.Apps                         ( DefaultAppsStorage(..)
+                                                          , App(..)
+                                                          , DefaultApps(..)
+                                                          , simpleArgsWrapper
+                                                          , simplerArgsWrapper
+                                                          , simplestArgsWrapper
+                                                          )
 import           Custom.Util.Color                        ( ColorScheme(..)
                                                           , xmobarColorizer
                                                           )
@@ -52,7 +59,6 @@ import           XMonad                                   ( gets
                                                               , workspaces
                                                               )
                                                           , Default(def)
-                                                          , MonadIO
                                                           , Choose
                                                           , Full
                                                           , Mirror
@@ -65,9 +71,6 @@ import           XMonad.Hooks.DynamicLog                  ( wrap
                                                           )
 import qualified XMonad.StackSet                         as W
 import qualified XMonad.Util.ExtensibleState             as XS
-import           XMonad.Util.Run                          ( safeSpawn
-                                                          , safeSpawnProg
-                                                          )
 
 ----------------------------------------------------------------------------------------------------
 -- Modifier keys
@@ -149,20 +152,18 @@ myWorkspaces = Workspaces
 -- Default Apps
 ----------------------------------------------------------------------------------------------------
 
--- TODO: evaluation flag!!
 myDefaultApps :: DefaultApps
-myDefaultApps = DefaultApps { myTerminal    = ["alacritty", "-e"]
-                            , myBrowser     = ["firefox", ""]
-                            , myFileManager = ["nautilus", ""]
-                            , myEditor      = ["emacsclient -c -a=emacs", "--eval"]
-                            }
+myDefaultApps = DefaultApps
+    { termEmulator = App "alacritty" "" "" $ simplerArgsWrapper "-e"
+    , browser      = App "firefox" "Firefox" "Open source web browser" simplestArgsWrapper
+    , fileManager  = App "nautilus" "" "" simplestArgsWrapper
+    , editor       = App "emacsclient" "Emacs Client" "Emacs launched as client"
+                         $ simpleArgsWrapper ["-c", "-a=emacs"] "--eval"
+    }
 
-openWith :: MonadIO m => (DefaultApps -> [String]) -> [String] -> m ()
-openWith prog []   = safeSpawnProg . head $ prog myDefaultApps
-openWith prog args = safeSpawn p [ q ++ " " ++ r | r <- args ]
-  where
-    p = head $ prog myDefaultApps
-    q = prog myDefaultApps !! 1
+myTerminal, myBrowser, myFileManager, myEditor :: App
+[myTerminal, myBrowser, myFileManager, myEditor] =
+    map (\x -> x myDefaultApps) [termEmulator, browser, fileManager, editor]
 
 ----------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------
@@ -206,14 +207,15 @@ myXMobarPP = def
 ----------------------------------------------------------------------------------------------------
 
 initializeStorage :: X ()
-initializeStorage = XS.put (WorkspacesStorage $ wsLbls myWorkspaces)
+initializeStorage =
+    XS.put (WorkspacesStorage $ wsLbls myWorkspaces) >> XS.put (DefaultAppsStorage myDefaultApps)
 ----------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------
 
 
 baseXConfig :: XConfig (Choose Tall (Choose (Mirror Tall) Full))
 baseXConfig = def { modMask     = myModKey
-                  , terminal    = head . myTerminal $ myDefaultApps
+                  , terminal    = let ~(App exec _ _ _) = myTerminal in exec
                   , borderWidth = myBorderWidth
                   , workspaces  = wsLabels myWorkspaces
                   }

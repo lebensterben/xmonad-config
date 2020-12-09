@@ -23,9 +23,14 @@ import           Custom.Prompt                            ( confirmExit
                                                           , searchWithSelection
                                                           )
 import           Custom.TreeSelect                        ( treeSelect )
-import           Custom.Util.Apps                         ( DefaultApps(..) )
-import           Custom.Variables                         ( myWorkspaces
-                                                          , openWith
+import           Custom.Util.Apps                         ( appRun
+                                                          , appRunArgs
+                                                          )
+import           Custom.Variables                         ( myEditor
+                                                          , myFileManager
+                                                          , myBrowser
+                                                          , myTerminal
+                                                          , myWorkspaces
                                                           )
 import           Custom.Windows                           ( focusWindow
                                                           , shrinkWindowTo
@@ -40,7 +45,8 @@ import           Custom.Workspaces                        ( moveToWS
                                                           , WSFilter(..)
                                                           )
 import           Data.List                                ( foldl' )
-import           XMonad                                   ( KeySym
+import           XMonad                                   ( recompile
+                                                          , KeySym
                                                           , KeyMask
                                                           , sendMessage
                                                           , windows
@@ -92,9 +98,10 @@ xmonadManagement _ =
     ( "XMonad"
     , [ ("M-x " ++ k, dscr, v)
       | (k, dscr, v) <-
-          [ ( "M-r"
-            , "Restart XMonad"
-            , safeSpawn "xmonad" ["--recompile"] >> safeSpawn "xmonad" ["--restart"]
+          [ ("M-r", "Restart XMonad", recompile False >> safeSpawn "xmonad" ["--restart"])
+          , ( "M-S-r"
+            , "Recompile and Restart XMonad"
+            , recompile True >> safeSpawn "xmonad" ["--restart"]
             )
           , ("M-M4-q", "Quit XMonad", confirmExit)
           ]
@@ -300,10 +307,10 @@ promptCommands _ =
 quickLaunch :: XConfig l -> (String, [(String, String, X ())])
 quickLaunch _ =
     ( "Quick Launch"
-    , [ ("M-<Return>", "Open terminal"    , openWith myTerminal [])
-      , ("M-b"       , "Open browser"     , openWith myBrowser [])
-      , ("M-f"       , "Open file manager", openWith myFileManager [])
-      , ("M-S-<Esc>" , "Open htop"        , openWith myTerminal ["htop"])
+    , [ ("M-<Return>", "Open terminal"    , appRun myTerminal)
+      , ("M-b"       , "Open browser"     , appRun myBrowser)
+      , ("M-f"       , "Open file manager", appRun myFileManager)
+      , ("M-S-<Esc>" , "Open htop"        , appRunArgs myTerminal ["htop"])
       ]
     )
 
@@ -318,12 +325,12 @@ quickLaunch _ =
 emacsCmds :: XConfig l -> (String, [(String, String, X ())])
 emacsCmds _ =
     ( "Emacs"
-    , [ ("M-e e", "Open Emacs"        , openWith myEditor [])
-      , ("M-e b", "List Emacs buffers", openWith myEditor ["'(ibuffer)'"])
-      , ("M-e d", "Dired"             , openWith myEditor ["'(dired nil)'"])
-      , ("M-e i", "Emacs IRC"         , openWith myEditor ["'(erc)'"])
-      , ("M-e m", "mu4e"              , openWith myEditor ["'(mu4e)'"])
-      , ("M-e n", "Elfeed RSS"        , openWith myEditor ["'(elfeed)'"])
+    , [ ("M-e e", "Open Emacs"        , appRun myEditor)
+      , ("M-e b", "List Emacs buffers", appRunArgs myEditor ["(ibuffer)"])
+      , ("M-e d", "Dired"             , appRunArgs myEditor ["(dired nil)"])
+      , ("M-e i", "Emacs IRC"         , appRunArgs myEditor ["(erc)"])
+      , ("M-e m", "mu4e"              , appRunArgs myEditor ["(mu4e)"])
+      , ("M-e n", "Elfeed RSS"        , appRunArgs myEditor ["(elfeed)"])
       ]
     )
 

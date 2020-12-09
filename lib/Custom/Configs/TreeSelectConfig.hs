@@ -5,7 +5,7 @@
 -- License     : BSD3
 -- Maintainer  : Lucius Hu <lebensterben@users.noreply.github.com>
 --
--- Config for tree select menu.
+-- Config for displaying tree select menu.
 ----------------------------------------------------------------------------------------------------
 
 module Custom.Configs.TreeSelectConfig
@@ -37,7 +37,7 @@ import qualified XMonad.Actions.TreeSelect               as TS
 -- Tree Select Config
 ----------------------------------------------------------------------------------------------------
 
--- | Config for tree select menu.
+-- | Config for displaying the tree select menu.
 treeSelectConfig :: XConfig l -> TS.TSConfig a
 treeSelectConfig xconf = additionalTSKeysP
     xconf

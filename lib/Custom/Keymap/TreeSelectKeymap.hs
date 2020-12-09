@@ -1,9 +1,6 @@
 module Custom.Keymap.TreeSelectKeymap (treeSelectKeymap) where
 
 import qualified XMonad.Actions.TreeSelect               as TS
-                                                          ( moveChild
-                                                          , moveTo
-                                                          )
 
 -- TODO add description
 treeSelectKeymap =

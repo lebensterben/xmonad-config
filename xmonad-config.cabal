@@ -11,6 +11,7 @@ executable xmonadcfg
 
   -- other-modules lists custom modules in my ~/.xmonad/lib/ directory
   other-modules:
+    Custom.Configs.Apps
     Custom.Configs.GridSelectConfig
     Custom.Configs.LayoutConfig
     Custom.Configs.PromptConfig
@@ -34,6 +35,7 @@ executable xmonadcfg
     Custom.Util.Apps
     Custom.Util.Color
     Custom.Util.Font
+    Custom.Util.TreeSelect
     Custom.Util.XMobar
     Custom.Variables
     Custom.Windows
@@ -43,7 +45,6 @@ executable xmonadcfg
   build-depends:
       base
     , containers
-    , data-default
     , mtl
     , X11
     , xmonad          >=0.15
