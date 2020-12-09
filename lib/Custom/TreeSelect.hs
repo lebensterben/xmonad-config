@@ -1,7 +1,8 @@
 -- TODO
 module Custom.TreeSelect (treeSelect) where
 
-import           Custom.Configs.Apps                      ( fileRoller
+import           Custom.Configs.Apps                      ( systemctl
+                                                          , fileRoller
                                                           , qalculate
                                                           , killall
                                                           , picom
@@ -40,10 +41,14 @@ import           Custom.Configs.Apps                      ( fileRoller
                                                           , haskellStackExchange
                                                           )
 import           Custom.Configs.TreeSelectConfig          ( treeSelectConfig )
-import           Custom.Util.TreeSelect                   ( AsTSNodeArgs(asTSNodeArgs)
+import           Custom.Prompt                            ( confirmPrompt )
+import           Custom.Util.TreeSelect                   ( tsTree
+                                                          , tsSubTitle
+                                                          , AsTSNodeArgs(asTSNodeArgs)
                                                           , AsTSNode(asTSNode)
-                                                          , (>+>)
+                                                          , (>*>>)
                                                           , (>:=>)
+                                                          , (>$>)
                                                           , tsSubForrest
                                                           , tsSubTree
                                                           , tsSeparator
@@ -53,7 +58,8 @@ import           Custom.Variables                         ( myBrowser
                                                           )
 import           Data.Tree                                ( Tree(Node) )
 import           System.Exit                              ( exitSuccess )
-import           XMonad                                   ( XConfig
+import           XMonad                                   ( recompile
+                                                          , XConfig
                                                           , X
                                                           , io
                                                           )
@@ -77,13 +83,14 @@ treeSelect conf = TS.treeselectAction
     , cfgFiles
     , tsSeparator 35
     , xmonadCtl
+    , powerCtl
     ]
 
 accessories :: Tree (TS.TSNode (X ()))
 accessories = tsSubTree
     "+ Accessories"
     "Accessory applications"
-    [asTSNode fileRoller, asTSNode qalculate, asTSNodeArgs killall ["picom"] >+> asTSNode picom]
+    [asTSNode fileRoller, asTSNode qalculate, asTSNodeArgs killall ["picom"] >*>> asTSNode picom]
 
 graphics :: Tree (TS.TSNode (X ()))
 graphics = tsSubTree "+ Graphics" "graphics programs" [asTSNode gimp, asTSNode inkscape]
@@ -232,10 +239,30 @@ cfgXMobar = tsSubTree
           >:=> ("xmobar mon0", "status bar on monitor 0")
     ]
 
+-- FIXME
 xmonadCtl :: Tree (TS.TSNode (X ()))
 xmonadCtl = Node
-    (TS.TSNode "+ XMonad" "window manager commands" (return ()))
-    [ Node (TS.TSNode "Recompile" "Recompile XMonad" $ safeSpawn "xmonad" ["--recompile"]) []
-    , Node (TS.TSNode "Restart" "Restart XMonad" $ safeSpawn "xmonad" ["--restart"])       []
-    , Node (TS.TSNode "Quit" "Restart XMonad" (io exitSuccess))                            []
+    (tsSubTitle "+ XMonad" "window manager commands")
+    [ tsTree
+        (TS.TSNode "Restart"
+                   "Restart XMonad and recompile when necessary"
+                   (recompile False >> safeSpawn "xmonad" ["--restart"])
+        )
+    , tsTree
+        (TS.TSNode "Force Recompile and Restart"
+                   "Restart XMonad and recomile itself regardless"
+                   (recompile True >> safeSpawn "xmonad" ["--restart"])
+        )
+    , tsTree (TS.TSNode "Quit" "Restart XMonad" (confirmPrompt "Exit?" $ io exitSuccess))
+    ]
+
+-- FIXME
+powerCtl :: Tree (TS.TSNode (X ()))
+powerCtl = Node
+    (tsSubTitle "+ Power Control" "power control commands")
+    [ tsTree
+          (    confirmPrompt "Suspend?"
+          >$>  asTSNodeArgs systemctl ["suspend"]
+          >:=> ("suspend", "suspend the system")
+          )
     ]

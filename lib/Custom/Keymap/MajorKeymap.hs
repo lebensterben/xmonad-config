@@ -16,7 +16,7 @@ import           Custom.GridSelect                        ( gridWS
                                                           , gridSpawn
                                                           )
 import           Custom.Keymap                            ( mkNamedKeymapSection )
-import           Custom.Prompt                            ( confirmExit
+import           Custom.Prompt                            ( confirmPrompt
                                                           , shellPrompt
                                                           , spawnPrompt
                                                           , searchWithInput
@@ -45,7 +45,9 @@ import           Custom.Workspaces                        ( moveToWS
                                                           , WSFilter(..)
                                                           )
 import           Data.List                                ( foldl' )
-import           XMonad                                   ( recompile
+import           System.Exit                              ( exitSuccess )
+import           XMonad                                   ( io
+                                                          , recompile
                                                           , KeySym
                                                           , KeyMask
                                                           , sendMessage
@@ -100,10 +102,10 @@ xmonadManagement _ =
       | (k, dscr, v) <-
           [ ("M-r", "Restart XMonad", recompile False >> safeSpawn "xmonad" ["--restart"])
           , ( "M-S-r"
-            , "Recompile and Restart XMonad"
+            , "Force recompile and Restart XMonad"
             , recompile True >> safeSpawn "xmonad" ["--restart"]
             )
-          , ("M-M4-q", "Quit XMonad", confirmExit)
+          , ("M-M4-q", "Quit XMonad", confirmPrompt "Exit?" $ io exitSuccess)
           ]
       ]
     )

@@ -1,4 +1,7 @@
+#+TITLE: Todo-List
+#+AUTHOR: Lucius Hu
 #+STARTUP: content
+
 * Todos [4/15]:
 ** TODO Main [0/1]
 *** TODO =NamedScratchpad= section
@@ -66,6 +69,7 @@
 ** DONE Custom.Workspaces                                           :ARCHIVE:
    CLOSED: [2020-12-02 Wed 02:45]
 ** TODO Custom.XConfig
+
 
 * Ideas [1/13]
 ** TODO Clean imports, combine them to more familiar modules

@@ -11,7 +11,7 @@
 module Custom.Prompt
     (
       -- * Prompts
-      confirmExit
+      confirmPrompt
     , searchWithInput
     , searchWithSelection
     , shellPrompt
@@ -22,9 +22,7 @@ where
 import           Custom.Configs.PromptConfig              ( promptConfig
                                                           , AutoCompletion(..)
                                                           )
-import           System.Exit                              ( exitSuccess )
-import           XMonad                                   ( io
-                                                          , MonadIO(liftIO)
+import           XMonad                                   ( MonadIO(liftIO)
                                                           , X
                                                           )
 import           XMonad.Actions.Search                   as S
@@ -44,7 +42,7 @@ import           XMonad.Actions.Search                   as S
                                                           )
 import           XMonad.Hooks.DynamicLog                  ( trim )
 import           XMonad.Prompt                            ( XPConfig )
-import           XMonad.Prompt.ConfirmPrompt              ( confirmPrompt )
+import qualified XMonad.Prompt.ConfirmPrompt             as CP
 import           XMonad.Prompt.Input                      ( (?+)
                                                           , inputPrompt
                                                           )
@@ -58,9 +56,9 @@ import           XMonad.Util.Run                          ( runProcessWithInput 
 -- Prompts
 ----------------------------------------------------------------------------------------------------
 
--- | A prompt to ask confirmation to exit xmonad.
-confirmExit :: X ()
-confirmExit = confirmPrompt (promptConfig CompletionOff) "Exit?" $ io exitSuccess
+-- | A prompt to ask for confirmation before executing commands.
+confirmPrompt :: String -> X () -> X ()
+confirmPrompt = CP.confirmPrompt (promptConfig CompletionOff)
 
 -- | A shell prompt.
 shellPrompt :: X ()
