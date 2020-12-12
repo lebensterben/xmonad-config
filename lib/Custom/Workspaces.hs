@@ -33,15 +33,13 @@ module Custom.Workspaces
       -- * Screen Navigation
     , moveToScreen
     , shiftToScreen
-    )
-where
+    ) where
 
 import           Data.List                                ( elemIndex )
 import           Data.Maybe                               ( isJust )
 import           XMonad                                   ( ExtensionClass(..)
                                                           , Typeable
                                                           , WorkspaceId
-                                                          , withWindowSet
                                                           , windows
                                                           , X
                                                           )
@@ -66,38 +64,40 @@ import           XMonad.Util.Types                        ( Direction1D(..) )
 --
 -- Needs to be initialised during starting up, via 'XMonad.Util.ExtensibleState.put', and can be
 -- retrieved via 'XMonad.Util.ExtensibleState.get'.
-newtype WorkspacesStorage = WorkspacesStorage [WorkspaceId] deriving Typeable
+newtype WorkspacesStorage = WorkspacesStorage Workspaces deriving Typeable
 instance ExtensionClass WorkspacesStorage where
-    initialValue = WorkspacesStorage []
+    initialValue = WorkspacesStorage Workspaces { wsLbls = [], formatter = snd }
 
 -- | Represents the set of workspaces in XMonad.
 --
 -- >>> myWorkspacesLbl = ["1", "2", "3"]
 -- >>> Workspaces { wsLbls = myWorkspacesLbl, formatter = /omitted/ }
 -- Workspaces { wsLbls = ["1","2","3"] }
-data Workspaces = Workspaces {
-    wsLbls :: [WorkspaceId], -- ^ Labels of workspaces.
-    formatter :: (Int, WorkspaceId) -> WorkspaceId
-                             -- ^ Function that formats the raw labels, e.g. adding extra
-                             --   spacings, and adding XMobar action tag.
+data Workspaces = Workspaces
+    { wsLbls    :: [WorkspaceId] -- ^ Labels of workspaces.
+    , formatter :: (Int, WorkspaceId) -> WorkspaceId
+                   -- ^ Function that formats the raw labels, e.g. adding extra
+                   --   spacings, and adding XMobar action tag.
     }
 
 instance Show Workspaces where
     show wss = "Workspaces { wsLbls = " ++ show (wsLbls wss) ++ ", formatter = /omitted/" ++ " }"
 
 -- | Retrieve the list of workspaces labels, formatted with the formatter, and add xmobar actions
---   according to whether it's clickable.
+-- according to whether it's clickable.
 wsLabels :: Workspaces -> [WorkspaceId]
-wsLabels wss = zipWith (curry $ formatter wss) [1 .. length lbls] lbls where lbls = wsLbls wss
+wsLabels Workspaces { wsLbls = lbls, formatter = fmt } =
+    zipWith (curry fmt) [1 .. length lbls] lbls
 
 -- | Given a workspace tag, find it in current workspaces, and reformat it appropriately.
---   If it's not found, return @Nothing@.
+-- If it's not found, return @Nothing@.
 wsFind :: WorkspaceId -> X (Maybe WorkspaceId)
 wsFind x = do
-    (WorkspacesStorage wss) <- XS.get
-    withWindowSet $ \ws -> do
-        let curWSs = W.tag <$> W.workspaces ws
-        return $ (curWSs !!) <$> elemIndex x wss
+    -- Get the original unformated workspace tags, and the formatter
+    (WorkspacesStorage Workspaces { wsLbls = lbls, formatter = fmt }) <- XS.get
+    case elemIndex x lbls of
+        Just i  -> return $ Just (fmt (i + 1, lbls !! i))
+        Nothing -> return Nothing
 
 ----------------------------------------------------------------------------------------------------
 -- Workspaces Filter
@@ -140,7 +140,7 @@ moveToWS' wss prefix =
     ]
 
 -- | Move the focused window to the workspace in the given direction with a given filter, and keep
---   the window under focus.
+-- the window under focus.
 shiftToWS :: String                  -- ^ Prefix keys, ends with a \"-\", e.g. @"M-C-"@
           -> [(String, Direction1D)] -- ^ Lists of keys-directions pairs, e.g.
                                      --   @[("h", L), ("j", D)]@

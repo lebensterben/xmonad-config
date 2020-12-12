@@ -63,13 +63,15 @@ import           XMonad                                   ( recompile
                                                           , X
                                                           , io
                                                           )
-import qualified XMonad.Actions.TreeSelect               as TS
+import           XMonad.Actions.TreeSelect                ( treeselectAction
+                                                          , TSNode(TSNode)
+                                                          )
 import           XMonad.Util.Run                          ( safeSpawn )
 
 
 -- TODO: Screenshots
 treeSelect :: XConfig l -> X ()
-treeSelect conf = TS.treeselectAction
+treeSelect conf = treeselectAction
     (treeSelectConfig conf)
     [ accessories
     , graphics
@@ -86,35 +88,35 @@ treeSelect conf = TS.treeselectAction
     , powerCtl
     ]
 
-accessories :: Tree (TS.TSNode (X ()))
+accessories :: Tree (TSNode (X ()))
 accessories = tsSubTree
     "+ Accessories"
     "Accessory applications"
     [asTSNode fileRoller, asTSNode qalculate, asTSNodeArgs killall ["picom"] >*>> asTSNode picom]
 
-graphics :: Tree (TS.TSNode (X ()))
+graphics :: Tree (TSNode (X ()))
 graphics = tsSubTree "+ Graphics" "graphics programs" [asTSNode gimp, asTSNode inkscape]
 
-internet :: Tree (TS.TSNode (X ()))
+internet :: Tree (TSNode (X ()))
 internet =
     tsSubTree "+ Internet" "internet and web programs" [asTSNode myBrowser, asTSNode thunderbird]
 
-multimedia :: Tree (TS.TSNode (X ()))
+multimedia :: Tree (TSNode (X ()))
 multimedia = tsSubTree "+ Multimedia"
                        "sound and video applications"
                        [asTSNode alsamixer, asTSNode audacious, asTSNode vlc]
 
-office :: Tree (TS.TSNode (X ()))
+office :: Tree (TSNode (X ()))
 office = tsSubTree "+ Office" "office applications" [asTSNode evince]
 
-programming :: Tree (TS.TSNode (X ()))
+programming :: Tree (TSNode (X ()))
 programming = tsSubForrest
     "+ Programming"
     "programming and scripting tools"
     [emacs]
     [asTSNode iPython, asTSNode jupyterLab, asTSNode rstudio, asTSNode vscode, asTSNode zeal]
 
-emacs :: Tree (TS.TSNode (X ()))
+emacs :: Tree (TSNode (X ()))
 emacs = tsSubTree
     "+ Emacs"
     "Emacs is more than a text editor"
@@ -130,25 +132,25 @@ emacs = tsSubTree
     , asTSNodeArgs myEditor ["(mu4e)"] >:=> ("M-x mu4e", "Email client for Emacs") -- FIXME
     ]
 
-system :: Tree (TS.TSNode (X ()))
+system :: Tree (TSNode (X ()))
 system = tsSubTree "+ System" "system tools and utilities" [asTSNode glances, asTSNode htop]
 
 
 -- TODO: custom start page "file:///home/lucius/.surf/html/homepage.html"
-bookmarks :: Tree (TS.TSNode (X ()))
+bookmarks :: Tree (TSNode (X ()))
 bookmarks =
     tsSubForrest "+ Bookmarks" "a list of web bookmarks" [bmLinux, bmEmacs, bmProgramming] []
 
-bmLinux :: Tree (TS.TSNode (X ()))
+bmLinux :: Tree (TSNode (X ()))
 bmLinux = tsSubForrest "+ Linux" "a list of web bookmarks" [bmClearlinux, bmLinuxNews, bmXMonad] []
 
-bmClearlinux :: Tree (TS.TSNode (X ()))
+bmClearlinux :: Tree (TSNode (X ()))
 bmClearlinux = tsSubTree "+ Clear Linux" "Clear Linux related" [asTSNode clForum, asTSNode clRepo]
 
-bmLinuxNews :: Tree (TS.TSNode (X ()))
+bmLinuxNews :: Tree (TSNode (X ()))
 bmLinuxNews = tsSubTree "+ Linux News" "linux news and blogs" [asTSNode lxer]
 
-bmXMonad :: Tree (TS.TSNode (X ()))
+bmXMonad :: Tree (TSNode (X ()))
 bmXMonad = tsSubTree
     "+ Xmonad"
     "window manager documentation"
@@ -159,7 +161,7 @@ bmXMonad = tsSubTree
     , asTSNode xmobarHP
     ]
 
-bmEmacs :: Tree (TS.TSNode (X ()))
+bmEmacs :: Tree (TSNode (X ()))
 bmEmacs = tsSubTree
     "+ Emacs"
     "Emacs documentation"
@@ -170,24 +172,24 @@ bmEmacs = tsSubTree
     , asTSNode emacsWiki
     ]
 
-bmProgramming :: Tree (TS.TSNode (X ()))
+bmProgramming :: Tree (TSNode (X ()))
 bmProgramming =
     tsSubForrest "+ Programming" "programming and scripting" [bmBash, bmElisp, bmHaskell] []
 
-bmBash :: Tree (TS.TSNode (X ()))
+bmBash :: Tree (TSNode (X ()))
 bmBash = tsSubTree "+ Bash and Shell Scripting"
                    "shell scripting documentation"
                    [asTSNode bashDocs, asTSNode learnShell]
 
-bmElisp :: Tree (TS.TSNode (X ()))
+bmElisp :: Tree (TSNode (X ()))
 bmElisp = tsSubTree "+ Elisp" "emacs lisp documentation" [asTSNode elispDoc]
 
-bmHaskell :: Tree (TS.TSNode (X ()))
+bmHaskell :: Tree (TSNode (X ()))
 bmHaskell = tsSubTree "+ Haskell"
                       "haskell documentation"
                       [asTSNode hoogle, asTSNode haskellReddit, asTSNode haskellStackExchange]
 
-cfgFiles :: Tree (TS.TSNode (X ()))
+cfgFiles :: Tree (TSNode (X ()))
 cfgFiles = tsSubForrest
     "+ Config Files"
     "config files that edit often"
@@ -212,7 +214,7 @@ cfgFiles = tsSubForrest
     ]
 
 -- FIXME: scratchpad
-cfgXMonad :: Tree (TS.TSNode (X ()))
+cfgXMonad :: Tree (TSNode (X ()))
 cfgXMonad = tsSubTree
     "+ xmonad configs"
     "My xmonad config files"
@@ -231,7 +233,7 @@ cfgXMonad = tsSubTree
         >:=> ("MyVariables.hs", "My XMonad variables")
     ]
 
-cfgXMobar :: Tree (TS.TSNode (X ()))
+cfgXMobar :: Tree (TSNode (X ()))
 cfgXMobar = tsSubTree
     "+ xmobar configs"
     "My xmobar config files"
@@ -240,29 +242,39 @@ cfgXMobar = tsSubTree
     ]
 
 -- FIXME
-xmonadCtl :: Tree (TS.TSNode (X ()))
+xmonadCtl :: Tree (TSNode (X ()))
 xmonadCtl = Node
     (tsSubTitle "+ XMonad" "window manager commands")
     [ tsTree
-        (TS.TSNode "Restart"
-                   "Restart XMonad and recompile when necessary"
-                   (recompile False >> safeSpawn "xmonad" ["--restart"])
+        (TSNode "Restart"
+                "Restart XMonad and recompile when necessary"
+                (recompile False >> safeSpawn "xmonad" ["--restart"])
         )
     , tsTree
-        (TS.TSNode "Force Recompile and Restart"
-                   "Restart XMonad and recomile itself regardless"
-                   (recompile True >> safeSpawn "xmonad" ["--restart"])
+        (TSNode "Force Recompile and Restart"
+                "Restart XMonad and recomile itself regardless"
+                (recompile True >> safeSpawn "xmonad" ["--restart"])
         )
-    , tsTree (TS.TSNode "Quit" "Restart XMonad" (confirmPrompt "Exit?" $ io exitSuccess))
+    , tsTree (TSNode "Quit" "Restart XMonad" (confirmPrompt "Exit?" $ io exitSuccess))
     ]
 
 -- FIXME
-powerCtl :: Tree (TS.TSNode (X ()))
+powerCtl :: Tree (TSNode (X ()))
 powerCtl = Node
     (tsSubTitle "+ Power Control" "power control commands")
     [ tsTree
-          (    confirmPrompt "Suspend?"
-          >$>  asTSNodeArgs systemctl ["suspend"]
-          >:=> ("suspend", "suspend the system")
-          )
+        (    confirmPrompt "Suspend?"
+        >$>  asTSNodeArgs systemctl ["suspend"]
+        >:=> ("suspend", "suspend the system")
+        )
+    , tsTree
+        (    confirmPrompt "Shutdown?"
+        >$>  asTSNodeArgs systemctl ["shutdown"]
+        >:=> ("shutdown", "shutdown the system")
+        )
+    , tsTree
+        (    confirmPrompt "Reboot?"
+        >$>  asTSNodeArgs systemctl ["Reboot"]
+        >:=> ("reboot", "reboot the system")
+        )
     ]

@@ -1,4 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
 ----------------------------------------------------------------------------------------------------
 -- |
 -- Module      : Custom.Hooks.ManageHook
@@ -13,8 +12,7 @@ module Custom.Hooks.ManageHook
     (
       -- * Manage Hook
       myManageHook
-    )
-where
+    ) where
 
 import           Custom.Workspaces                        ( wsFind )
 import           XMonad                                   ( (<||>)
@@ -24,7 +22,6 @@ import           XMonad                                   ( (<||>)
                                                           , composeAll
                                                           , doFloat
                                                           , doShift
-                                                          , idHook
                                                           , liftX
                                                           , title
                                                           , XConfig(manageHook)
@@ -74,8 +71,4 @@ myManageHook conf = conf
                        -- ,namedScratchpadManageHook myScratchPads
                        ]
     }
-  where
-    shiftIfFoundWS x = liftX (wsFind x) </=? Nothing -->> shiftOnJust
-    shiftOnJust = \case
-        Just a  -> doShift a
-        Nothing -> idHook
+    where shiftIfFoundWS x = liftX (wsFind x) </=? Nothing -->> \ ~(Just a) -> doShift a

@@ -25,8 +25,7 @@ module Custom.Variables
     , myFontSet
     , myWorkspaces
     , initializeStorage
-    )
-where
+    ) where
 
 import           Custom.Util.Apps                         ( DefaultAppsStorage(..)
                                                           , App(..)
@@ -208,7 +207,7 @@ myXMobarPP = def
 
 initializeStorage :: X ()
 initializeStorage =
-    XS.put (WorkspacesStorage $ wsLbls myWorkspaces) >> XS.put (DefaultAppsStorage myDefaultApps)
+    XS.put (WorkspacesStorage myWorkspaces) >> XS.put (DefaultAppsStorage myDefaultApps)
 ----------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------
 

@@ -37,8 +37,11 @@ import           Custom.Util.Apps                         ( App
 import           Data.Tree                                ( Forest
                                                           , Tree(..)
                                                           )
-import           XMonad                                   ( X )
+import           XMonad                                   ( MonadIO
+                                                          , X
+                                                          )
 import           XMonad.Actions.TreeSelect                ( TSNode(..) )
+import           XMonad.Util.PureX                        ( XLike )
 
 ----------------------------------------------------------------------------------------------------
 -- Conversion of 'Runnable' and 'RunnableArgs' to 'TSNode'
@@ -46,7 +49,7 @@ import           XMonad.Actions.TreeSelect                ( TSNode(..) )
 
 -- | Provides conversion from a 'Runnable' to a 'TSNode' that takes no extra arguments.
 class Runnable r => AsTSNode r where
-    asTSNode ::  r -> TSNode (X ())
+    asTSNode :: (MonadIO m, XLike m) => r -> TSNode (m ())
     asTSNode a = TSNode sdscr ldscr $ appRun a
         where (sdscr, ldscr) = appDscr a
 
@@ -60,7 +63,7 @@ instance AsTSNode WebApp
 
 -- | Provides conversion from a 'RunnableArgs' to a 'TSNode' that may take extra arguments.
 class RunnableArgs r => AsTSNodeArgs r where
-    asTSNodeArgs ::  r -> [Arg] -> TSNode (X ())
+    asTSNodeArgs :: (MonadIO m, XLike m) => r -> [Arg] -> TSNode (m ())
     asTSNodeArgs a args = TSNode sdscr ldscr $ appRunArgs a args
         where (sdscr, ldscr) = appDscr a
 
@@ -93,27 +96,27 @@ infixl 4 >$>
 --
 -- This represents any entry in the tree select menu that at least one of its sub-entry is not a
 -- final action, i.e. containing sub-entries itself.
-tsSubForrest :: String                    -- ^ Short description.
-             -> String                    -- ^ Long description.
+tsSubForrest :: String                 -- ^ Short description.
+             -> String                 -- ^ Long description.
              -> Forest (TSNode (X ())) -- ^ A sub-forest that will be attached to the tree.
              -> [TSNode (X ())]        -- ^ Additional 'TSNode's.
              -> Tree (TSNode (X ()))
 tsSubForrest fsdscr fldscr tstrees tsnodes =
-    Node (tsSubTitle fsdscr fldscr) (tstrees ++ map (`Node` []) tsnodes)
+    Node (tsSubTitle fsdscr fldscr) (tstrees ++ map tsTree tsnodes)
 
 -- | Constructs a 'Tree' of 'TSNode', with given descriptions, and a number of 'TSNode'.
 --
 -- This represent an entry in tree select menu, s.t. all of its sub-entries are final actions.
 tsSubTree :: String -> String -> [TSNode (X ())] -> Tree (TSNode (X ()))
-tsSubTree tsdscr tldscr tsnodes = Node (tsSubTitle tsdscr tldscr) (map (`Node` []) tsnodes)
+tsSubTree tsdscr tldscr tsnodes = Node (tsSubTitle tsdscr tldscr) (map tsTree tsnodes)
 
 -- TODO
-tsSubTitle :: String -> String -> TSNode (X ())
+tsSubTitle :: (Monad m) => String -> String -> TSNode (m ())
 tsSubTitle sdscr ldscr = TSNode sdscr ldscr (return ())
 
 -- TODO
-tsTree :: TSNode (X ()) -> Tree (TSNode (X ()))
-tsTree tsnode = Node tsnode []
+tsTree :: TSNode (m a) -> Tree (TSNode (m a))
+tsTree = flip Node []
 
 -- | A separator
 tsSeparator :: Int -> Tree (TSNode (X ()))

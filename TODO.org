@@ -71,10 +71,11 @@
 ** TODO Custom.XConfig
 
 
-* Ideas [1/13]
+* Ideas [2/13]
 ** TODO Clean imports, combine them to more familiar modules
 ** TODO Rename customization variables to =my*=
-** TODO Add variables such as workspaces formatter into Global
+** DONE Add variables such as workspaces formatter into Global      :ARCHIVE:
+   CLOSED: [2020-12-10 Thu 03:54]
 ** TODO Check ~XMonad.Actions.DynamicProjects~ or ~XMonad.Actions.TopicSpace~
 *** TODO Use dynamic work dir for cmds such as emacs dired
 ** TODO The ~workspaces Clickable !! i~ is not ergonomic (still valid)
