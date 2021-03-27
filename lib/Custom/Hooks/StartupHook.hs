@@ -11,8 +11,7 @@ module Custom.Hooks.StartupHook
     (
       -- * Startup Hook
       myStartupHook
-    )
-where
+    ) where
 
 import           Custom.Variables                         ( initializeStorage )
 import           XMonad                                   ( (<+>)
@@ -29,15 +28,17 @@ import           XMonad.Util.SpawnOnce                    ( spawnOnce )
 -- | External programs to launch after xmonad.
 startUpApps :: [String]
 startUpApps =
-    [ "/usr/local/bin/picom"                                        -- compositior
+    [ "/usr/local/bin/picom --experimental-backend"                 -- compositior
     , "/usr/libexec/gsd-xsettings"                                  -- gtk settings daemon
     , "nm-applet"                                                   -- network tray icon
-    , "/usr/local/bin/volumeicon"                                   -- volume tray icon
+    , "/usr/local/bin/pasystray"                                    -- volume tray icon
     , "/usr/local/bin/trayer --edge top --align right --widthtype request --padding 6 \
         \ --SetDockType true --SetPartialStrut true --expand true --monitor 1 --transparent true \
         \ --alpha 0 --tint 0x282c34  --height 22"                   -- trayer
     , "fcitx5"                                                      -- IM daemon
-    , "ulauncher --hide-window"                                     -- app launcher
+    -- , "ulauncher --hide-window"                                     -- app launcher
+    , "gnome-keyring-daemon --unlcok"                               -- prompt for login-password
+    , "dropbox start -i"                                            -- dropbox
     ]
 
 -- | Actions to run when starting up xmonad.

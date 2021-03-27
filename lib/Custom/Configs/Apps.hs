@@ -1,10 +1,12 @@
 -- TODO
 module Custom.Configs.Apps where
 
-import           Custom.Util.Apps                         ( simplestArgsWrapper
-                                                          , App(..)
+
+import           Custom.Util.Apps                         ( App(..)
+                                                          , FlatpakApp(..)
                                                           , TerminalApp(..)
                                                           , WebApp(..)
+                                                          , simplestArgsWrapper
                                                           )
 
 ----------------------------------------------------------------------------------------------------
@@ -122,6 +124,9 @@ learnShell = WebApp "https://www.learnshell.org/" "Learn Shell" "Interactive she
 
 lxer :: WebApp
 lxer = WebApp "http://lxer.com" "LXer" "LXer linux news aggregation"
+
+museScore :: FlatpakApp
+museScore = FlatpakApp "org.musescore.MuseScore" "MuseScore" "MuseScore"
 
 spacemacsLayers :: WebApp
 spacemacsLayers = WebApp "https://develop.spacemacs.org/layers/LAYERS.html"

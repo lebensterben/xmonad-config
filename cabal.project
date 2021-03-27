@@ -1,2 +1,1 @@
 packages: ./xmonad-config.cabal
-with-compiler: ghc-8.10.2

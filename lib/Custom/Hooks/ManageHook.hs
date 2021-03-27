@@ -15,7 +15,8 @@ module Custom.Hooks.ManageHook
     ) where
 
 import           Custom.Workspaces                        ( wsFind )
-import           XMonad                                   ( (<||>)
+import           XMonad                                   ( (<+>)
+                                                          , (<||>)
                                                           , (-->)
                                                           , (=?)
                                                           , className
@@ -50,25 +51,22 @@ import           XMonad.Hooks.ManageHelpers               ( (-->>)
 myManageHook :: XConfig l -> XConfig l
 myManageHook conf = conf
     { manageHook = composeAll
-                       [ isFullscreen --> doFullFloat
-                       , isDialog --> doCenterFloat -- Float Dialog
-                       , transience' -- send transient window to its parent
-                       , composeOne -- send windows to designated ws
-                           [ title =? "Mozilla Firefox" -?> shiftIfFoundWS "www"
-                           -- , className =? "mpv" --> doShift (workspaces !! 7)
-                           , className =? "Hexchat" -?> shiftIfFoundWS "chat"
-                           , className =? "Gitter" -?> shiftIfFoundWS "chat"
-                           , className =? "Element" -?> shiftIfFoundWS "chat"
-                           , className =? "vlc" -?> shiftIfFoundWS "vid"
-                           , className =? "Gimp" -?> shiftIfFoundWS "gfx" >> doFloat
-                           , className =? "Xmessage" <||> className =? "Gxmessage" -?> doCenterFloat
-                           , className =? "Ulauncher" -?> doCenterFloat
-                           -- FIXME: I don't have virtual box
-                           -- , title =? "Oracle VM VirtualBox Manager" --> doFloat
-                           -- , className =? "VirtualBox Manager" --> doShift (workspaces !! 4)
-                           ]
-                       -- FIXME: I don't currently use ScratchPads
-                       -- ,namedScratchpadManageHook myScratchPads
-                       ]
+        [ isFullscreen --> doFullFloat
+        , isDialog --> doCenterFloat -- Float Dialog
+        , transience' -- send transient window to its parent
+        , composeOne -- send windows to designated ws
+            [ title =? "Mozilla Firefox" -?> shiftIfFoundWS "www"
+            , className =? "Hexchat" -?> shiftIfFoundWS "chat"
+            , className =? "Gitter" -?> shiftIfFoundWS "chat"
+            , className =? "Element" -?> shiftIfFoundWS "chat"
+            , className =? "vlc" -?> shiftIfFoundWS "vid"
+            , className =? "Gimp" -?> shiftIfFoundWS "gfx" <+> doFloat
+            , className =? "Xmessage" <||> className =? "Gxmessage" -?> doCenterFloat
+            , className =? "Ulauncher" -?> doCenterFloat
+            , className =? "VirtualBox Manager" -?> shiftIfFoundWS "vbox" <+> doCenterFloat
+            ]
+            -- FIXME: I don't currently use ScratchPads
+            -- ,namedScratchpadManageHook myScratchPads
+        ]
     }
     where shiftIfFoundWS x = liftX (wsFind x) </=? Nothing -->> \ ~(Just a) -> doShift a

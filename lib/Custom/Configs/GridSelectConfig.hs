@@ -10,14 +10,14 @@
 
 module Custom.Configs.GridSelectConfig (gridConfigWindow, gridConfigString, gridContent) where
 
-import           Custom.Util.Color                        ( HexColor
+import           Custom.Util.Color                        ( ColorScheme(..)
+                                                          , HexColor
                                                           , toRGBTriple
-                                                          , ColorScheme(..)
                                                           )
 import           Custom.Util.Font                         ( Font(..)
                                                           , FontFace(..)
-                                                          , FontWeight(..)
                                                           , FontSize(..)
+                                                          , FontWeight(..)
                                                           )
 import           Custom.Variables                         ( myColor
                                                           , myFontSet
@@ -71,12 +71,13 @@ gridConfigWindow = gridConfig' $ GS.buildDefaultGSConfig gridWindowColorizer
 ----------------------------------------------------------------------------------------------------
 -- Grid Select Menu Contents
 ----------------------------------------------------------------------------------------------------
-
+-- TODO: This should be integrated with Apps.hs
 -- | Grid Select Menu Contents.
 gridContent :: [(String, (String, [String]))]
 gridContent =
     [ ("Alacritty"      , ("alacritty", []))
     , ("Characters"     , ("gnome-characters", []))
+    , ("Chromium", ("flatpak", ["run", "org.chromium.Chromium"]))
     , ("Color Picker"   , ("flatpak", ["run", "nl.hjdskes.gcolor3"]))
     , ("Emacs"          , ("emacsclient", ["-c", "-a", "emacs"]))
     , ("Elements"       , ("flatpak", ["run", "im.riot.Riot"]))
@@ -86,6 +87,7 @@ gridContent =
     , ("Gimp"           , ("gimp", []))
     , ("Gitter"         , ("flatpak", ["run", "im.gitter.Gitter"]))
     , ("HexChat"        , ("hexchat", []))
+    , ("MuseScore", ("flatpak", ["run", "org.musescore.MuseScore"]))
     , ("RStudio"        , ("rstudio", []))
     , ("Software Center", ("gnome-software", []))
     , ("Thunderbird"    , ("thunderbird", []))
