@@ -1,4 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
 ----------------------------------------------------------------------------------------------------
 -- |
 -- Module      : Custom.Hooks.ManageHook
@@ -13,32 +12,32 @@ module Custom.Hooks.ManageHook
     (
       -- * Manage Hook
       myManageHook
-    )
-where
+    ) where
 
-import           Custom.Workspaces                        ( wsFind )
-import           XMonad                                   ( (<||>)
-                                                          , (-->)
+import           Custom.Variables                         ( myScratchPads
+                                                          , myWorkspaces
+                                                          )
+import           Data.List                                ( find )
+import           XMonad                                   ( (-->)
+                                                          , (<||>)
                                                           , (=?)
+                                                          , ManageHook
+                                                          , Query
+                                                          , WorkspaceId
+                                                          , XConfig(manageHook)
                                                           , className
                                                           , composeAll
-                                                          , doFloat
                                                           , doShift
-                                                          , idHook
-                                                          , liftX
-                                                          , title
-                                                          , XConfig(manageHook)
                                                           )
-import           XMonad.Hooks.ManageHelpers               ( (-->>)
-                                                          , (</=?)
+import           XMonad.Hooks.ManageHelpers               ( (-?>)
                                                           , composeOne
                                                           , doCenterFloat
                                                           , doFullFloat
                                                           , isDialog
                                                           , isFullscreen
                                                           , transience'
-                                                          , (-?>)
                                                           )
+import           XMonad.Util.NamedScratchpad              ( namedScratchpadManageHook )
 
 ----------------------------------------------------------------------------------------------------
 -- Mangage Hook
@@ -53,29 +52,38 @@ import           XMonad.Hooks.ManageHelpers               ( (-->>)
 myManageHook :: XConfig l -> XConfig l
 myManageHook conf = conf
     { manageHook = composeAll
-                       [ isFullscreen --> doFullFloat
-                       , isDialog --> doCenterFloat -- Float Dialog
-                       , transience' -- send transient window to its parent
-                       , composeOne -- send windows to designated ws
-                           [ title =? "Mozilla Firefox" -?> shiftIfFoundWS "www"
-                           -- , className =? "mpv" --> doShift (workspaces !! 7)
-                           , className =? "Hexchat" -?> shiftIfFoundWS "chat"
-                           , className =? "Gitter" -?> shiftIfFoundWS "chat"
-                           , className =? "Element" -?> shiftIfFoundWS "chat"
-                           , className =? "vlc" -?> shiftIfFoundWS "vid"
-                           , className =? "Gimp" -?> shiftIfFoundWS "gfx" >> doFloat
-                           , className =? "Xmessage" <||> className =? "Gxmessage" -?> doCenterFloat
-                           , className =? "Ulauncher" -?> doCenterFloat
-                           -- FIXME: I don't have virtual box
-                           -- , title =? "Oracle VM VirtualBox Manager" --> doFloat
-                           -- , className =? "VirtualBox Manager" --> doShift (workspaces !! 4)
+                       [ matchQuery -- send windows to designated ws
+                           className
+                           [ ((`oneOf` ["Firefox", "Chromium-browser"]), shiftIfFoundWS "www")
+                           , ((`oneOf` ["Hexchat", "Gitter", "Element"]), shiftIfFoundWS "chat")
+                           , ((=? "vlc")                     , shiftIfFoundWS "media")
+                           , ((`oneOf` ["VirtualBox", "VirtualBox Manager"]), shiftIfFoundWS "vbox")
                            ]
-                       -- FIXME: I don't currently use ScratchPads
-                       -- ,namedScratchpadManageHook myScratchPads
+                       , namedScratchpadManageHook myScratchPads
+                       , isFullscreen --> doFullFloat
+                       , isDialog
+                       <||>    className
+                       `oneOf` [ "Alacritty Float"
+                               , "Nm-connection-editor"
+                               , "Pavucontrol"
+                               , "Xmessage"
+                               , "Gxmessage"
+                               , "VirtualBox"
+                               , "VirtualBox Manager"
+                               , "Gimp"
+                               , "Gimp-2.10"
+                               , "Nitrogen"
+                               , "Viewnior"
+                               , "Sxiv"
+                               ]
+                       -->     doCenterFloat
+                       , transience' -- send transient window to its parent
                        ]
     }
   where
-    shiftIfFoundWS x = liftX (wsFind x) </=? Nothing -->> shiftOnJust
-    shiftOnJust = \case
-        Just a  -> doShift a
-        Nothing -> idHook
+    shiftIfFoundWS :: WorkspaceId -> ManageHook
+    shiftIfFoundWS ws = maybe mempty doShift . find (== ws) $ myWorkspaces
+    oneOf :: (Foldable t, Eq a) => Query a -> t a -> Query Bool
+    oneOf needle hay = fmap (`elem` hay) needle
+    matchQuery :: Query a -> [(Query a -> Query Bool, ManageHook)] -> ManageHook
+    matchQuery q = composeOne . fmap (\(p, hook) -> p q -?> hook)

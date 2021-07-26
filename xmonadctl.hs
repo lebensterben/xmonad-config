@@ -1,4 +1,3 @@
-import           Control.Monad                            ( unless )
 import           Graphics.X11.Xlib                        ( allocaXEvent
                                                           , clientMessage
                                                           , defaultScreen
@@ -34,17 +33,19 @@ parse input addr args = case args of
     ("--help"    : _ ) -> showHelp
     ("-?"        : _ ) -> showHelp
     (a@('-' : _) : _ ) -> hPutStrLn stderr ("Unknown option " ++ a)
+
     (x           : xs) -> sendCommand addr x >> parse False addr xs
     [] | input     -> repl addr
        | otherwise -> return ()
 
 repl :: String -> IO ()
-repl addr =
-    isEOF
-        >>= (`unless` do
-                sendCommand addr =<< getLine
-                repl addr
-            )
+repl addr = do
+    e <- isEOF
+    if e
+        then return ()
+        else do
+            sendCommand addr =<< getLine
+            repl addr
 
 sendAll :: String -> [String] -> IO ()
 sendAll addr = foldr (\a b -> sendCommand addr a >> b) (return ())

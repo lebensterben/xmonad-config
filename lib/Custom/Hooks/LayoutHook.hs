@@ -11,27 +11,26 @@
 module Custom.Hooks.LayoutHook (myLayoutHook) where
 
 import           Custom.Configs.ShowWNameConfig           ( showWNameConfig )
-import           Custom.Layouts                           ( ComplexGrid
-                                                          , ComplexBinaryPartition
-                                                          , ComplexThreeCol
+import           Custom.Layouts                           ( ComplexBinaryPartition
+                                                          , ComplexFloat
+                                                          , ComplexGrid
                                                           , ComplexTall
                                                           , LayoutSelection
-                                                          , ComplexFloat
                                                           , floats
                                                           , myLayouts
                                                           )
-import           Custom.ShowWName                         ( ShowWNameEscape
-                                                          , showWNameEscape
-                                                          )
 import           XMonad                                   ( XConfig(layoutHook) )
 import           XMonad.Layout.LayoutModifier             ( ModifiedLayout )
-import           XMonad.Layout.MultiToggle                ( HCons
+import           XMonad.Layout.MultiToggle                ( (??)
+                                                          , EOT(EOT)
+                                                          , HCons
                                                           , MultiToggle
                                                           , mkToggle
-                                                          , (??)
-                                                          , EOT(EOT)
                                                           )
 import           XMonad.Layout.MultiToggle.Instances      ( StdTransformers(NBFULL, NOBORDERS) )
+import           XMonad.Layout.ShowWName                  ( ShowWName
+                                                          , showWName'
+                                                          )
 import           XMonad.Layout.ToggleLayouts              ( ToggleLayouts
                                                           , toggleLayouts
                                                           )
@@ -39,14 +38,13 @@ import           XMonad.Layout.ToggleLayouts              ( ToggleLayouts
 myLayoutHook :: XConfig l
              -> XConfig
                     ( ModifiedLayout
-                          ShowWNameEscape
+                          ShowWName
                           ( ToggleLayouts
                                 ComplexFloat
                                 ( MultiToggle
                                       (HCons StdTransformers (HCons StdTransformers EOT))
                                       ( LayoutSelection
                                             ComplexTall
-                                            ComplexThreeCol
                                             ComplexBinaryPartition
                                             ComplexGrid
                                       )
@@ -54,7 +52,7 @@ myLayoutHook :: XConfig l
                           )
                     )
 myLayoutHook conf = conf
-    { layoutHook = showWNameEscape showWNameConfig . toggleLayouts floats $ mkToggle
+    { layoutHook = showWName' showWNameConfig . toggleLayouts floats $ mkToggle
                        (NBFULL ?? NOBORDERS ?? EOT)
                        myLayouts
     }

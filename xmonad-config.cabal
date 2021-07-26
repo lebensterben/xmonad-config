@@ -8,15 +8,9 @@ cabal-version: >=1.10
 
 executable xmonadcfg
   main-is:          ../xmonad.hs
-
-  -- other-modules lists custom modules in my ~/.xmonad/lib/ directory
   other-modules:
-    Custom.Configs.GridSelectConfig
     Custom.Configs.LayoutConfig
-    Custom.Configs.PromptConfig
     Custom.Configs.ShowWNameConfig
-    Custom.Configs.TreeSelectConfig
-    Custom.GridSelect
     Custom.Hooks.HandleEventHook
     Custom.Hooks.LayoutHook
     Custom.Hooks.LogHook
@@ -25,26 +19,24 @@ executable xmonadcfg
     Custom.Hooks.WindowNavigationHook
     Custom.Keymap
     Custom.Keymap.MajorKeymap
-    Custom.Keymap.TreeSelectKeymap
     Custom.Layouts
     Custom.MouseBindings
     Custom.Prompt
-    Custom.ShowWName
-    Custom.TreeSelect
-    Custom.Util.Apps
     Custom.Util.Color
-    Custom.Util.Font
-    Custom.Util.XMobar
+    Custom.Util.DBus
+    Custom.Util.Polybar
     Custom.Variables
-    Custom.Windows
     Custom.Workspaces
     Custom.XConfig
 
   build-depends:
       base
     , containers
-    , data-default
+    , dbus
+    , directory
+    , filepath
     , mtl
+    , utf8-string
     , X11
     , xmonad          >=0.15
     , xmonad-contrib  >=0.16

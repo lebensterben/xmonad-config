@@ -16,7 +16,9 @@ module Custom.Hooks.LogHook
 where
 
 import           Custom.Variables                         ( inactiveWindowFadeAmount )
-import           XMonad                                   ( XConfig(logHook) )
+import           XMonad                                   ( (<+>)
+                                                          , XConfig(logHook)
+                                                          )
 import           XMonad.Actions.SwapPromote               ( masterHistoryHook )
 import           XMonad.Hooks.FadeInactive                ( fadeInactiveLogHook )
 import           XMonad.Hooks.WorkspaceHistory            ( workspaceHistoryHook )
@@ -33,6 +35,6 @@ import           XMonad.Hooks.WorkspaceHistory            ( workspaceHistoryHook
 myLogHook :: XConfig l -> XConfig l
 myLogHook conf = conf
     { logHook = workspaceHistoryHook
-                >> fadeInactiveLogHook inactiveWindowFadeAmount
-                >> masterHistoryHook
+                <+> fadeInactiveLogHook inactiveWindowFadeAmount
+                <+> masterHistoryHook
     }

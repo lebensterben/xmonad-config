@@ -1,78 +1,25 @@
-* Todos [6/15]:
+#+TITLE: Todo-List
+#+AUTHOR: Lucius Hu
+#+STARTUP: content
+
+* Todos [0/4]:
 ** TODO Main [0/1]
 *** TODO =NamedScratchpad= section
-** DONE Custom.Configs [7/7]
-   CLOSED: [2020-12-01 Tue 03:14]
-*** DONE Custom.Configs.GridSelectConfig
-    CLOSED: [2020-12-01 Tue 03:14]
-*** DONE Custom.Configs.LayoutConfig
-    CLOSED: [2020-11-30 Mon 22:04]
-*** DONE Custom.Configs.PromptConfig
-    CLOSED: [2020-11-29 Sun 04:59]
-*** DONE Custom.Configs.ShowWNameConfig
-    CLOSED: [2020-11-30 Mon 21:47]
-*** DONE Custom.Configs.TreeSelectConfig
-    CLOSED: [2020-11-30 Mon 22:38]
-*** DONE Custom.Configs.WorkspacesConfig
-    CLOSED: [2020-11-30 Mon 22:38]
-** TODO Custom.GridSelect [0/1]
-*** TODO Explore other types of grid menu
-** TODO Custom.Hooks [3/6]
+** TODO Custom.Hooks [0/2]
 *** TODO Custom.Hooks.HandleEventHook [0/1]
 **** TODO Fix the bug or discard this module
 *** TODO Custom.Hooks.LayoutHook [0/1]
 **** TODO Try other layout modifiers or decorations
-*** DONE Custom.Hooks.LogHook
-    CLOSED: [2020-11-30 Mon 00:23]
-*** TODO Custom.Hooks.ManageHook [0/1]
-**** TODO Refine the module
-*** DONE Custom.Hooks.StartupHook
-    CLOSED: [2020-11-29 Sun 22:03]
-*** DONE Custom.Hooks.WindowNavigationHook
-    CLOSED: [2020-12-01 Tue 06:53]
-** TODO Custom.Keymap [0/2]
-*** TODO Custom.Keymap.MajorKeymap [0/2]
-**** TODO Check XMonad.Util.NamedActions
-*** TODO Custom.Keymap.TreeSelectKeymap
-** DONE Custom.Layouts [1/1]
-   CLOSED: [2020-12-01 Tue 05:59]
-*** DONE Integrate with Float
-    CLOSED: [2020-12-01 Tue 05:53]
-** TODO Custom.MouseBindings
-** DONE Custom.Prompt
-   CLOSED: [2020-12-02 Wed 02:32]
-** TODO Custom.ShowWName [0/1]
-*** TODO Rename to =Custom.LayoutModifier.ShowWName=?
-** TODO Custom.TreeSelect [0/1]
-*** NEXT Tree Select show message
-** TODO Custom.Util [1/4]
-*** TODO Custom.Util.Apps [0/1]
-**** TODO Replace ~spawn~ with ~safeSpawn~
-*** DONE Custom.Util.Font
-    CLOSED: [2020-12-02 Wed 08:56]
-*** TODO Custom.Util.Color
-*** TODO Custom.Util.XMobar
-** TODO Custom.Variables [0/1]
-*** TODO separate the color module
-** DONE Custom.Windows
-   CLOSED: [2020-12-02 Wed 02:41]
-** DONE Custom.Workspaces
-   CLOSED: [2020-12-02 Wed 02:45]
+** TODO Custom.Keymap [0/1]
+*** TODO Custom.Keymap.MajorKeymap [1/1]
 ** TODO Custom.XConfig
 
-* Ideas [0/12]
-** TODO Clean imports, combine them to more familiar modules
-** TODO Rename customization variables to =my*=
-** TODO Add variables such as workspaces formatter into Global
+
+* Ideas [0/4]
 ** TODO Check ~XMonad.Actions.DynamicProjects~ or ~XMonad.Actions.TopicSpace~
-** TODO The ~workspaces Clickable !! i~ is not ergonomic (still valid)
-** TODO Check other layouts
-** TODO Integrate 1Password to replace ~XMonad.Prompt.Pass~?
-** TODO FIXME server mode*
-** TODO Scratchpads
+*** TODO Use dynamic work dir for cmds such as emacs dired
 ** TODO Emergent WS when receiving notification??
 ** TODO Dunst: Notification
-** TODO Generalise over color scheme and make mine as a default
 ** TODO https://wiki.archlinux.org/index.php/List_of_applications
 
    #+BEGIN_SRC shell :eval no-export :results none :exports none

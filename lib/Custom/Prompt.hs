@@ -11,119 +11,105 @@
 module Custom.Prompt
     (
       -- * Prompts
-      confirmExit
-    , searchWithInput
+      searchWithInput
     , searchWithSelection
-    , shellPrompt
     , spawnPrompt
-    )
-where
+    ) where
 
-import           Custom.Configs.PromptConfig              ( promptConfig
-                                                          , AutoCompletion(..)
+import           Data.Char                                ( toLower
+                                                          , toUpper
                                                           )
-import           System.Exit                              ( exitSuccess )
-import           XMonad                                   ( io
-                                                          , MonadIO(liftIO)
-                                                          , X
+import           XMonad                                   ( X )
+import           XMonad.Util.Run                          ( safeSpawn
+                                                          , safeSpawnProg
                                                           )
-import           XMonad.Actions.Search                   as S
-                                                          ( amazon
-                                                          , google
-                                                          , hoogle
-                                                          , images
-                                                          , maps
-                                                          , promptSearch
-                                                          , searchEngine
-                                                          , selectSearch
-                                                          , thesaurus
-                                                          , vocabulary
-                                                          , wikipedia
-                                                          , youtube
-                                                          , SearchEngine(..)
-                                                          )
-import           XMonad.Hooks.DynamicLog                  ( trim )
-import           XMonad.Prompt                            ( XPConfig )
-import           XMonad.Prompt.ConfirmPrompt              ( confirmPrompt )
-import           XMonad.Prompt.Input                      ( (?+)
-                                                          , inputPrompt
-                                                          )
-import           XMonad.Prompt.Man                        ( manPrompt )
-import qualified XMonad.Prompt.Shell                     as PS
-                                                          ( shellPrompt )
-import           XMonad.Prompt.Ssh                        ( sshPrompt )
-import           XMonad.Util.Run                          ( runProcessWithInput )
+import           XMonad.Util.XSelection                   ( transformSafePromptSelection )
 
 ----------------------------------------------------------------------------------------------------
 -- Prompts
 ----------------------------------------------------------------------------------------------------
 
--- | A prompt to ask confirmation to exit xmonad.
-confirmExit :: X ()
-confirmExit = confirmPrompt (promptConfig CompletionOff) "Exit?" $ io exitSuccess
-
--- | A shell prompt.
-shellPrompt :: X ()
-shellPrompt = PS.shellPrompt $ promptConfig CompletionOn
-
--- | A custom prompt for calculation with \"qalculate-gtk\"
-calcPrompt :: XPConfig -> String -> X ()
-calcPrompt c ans = inputPrompt c (trim ans)
-    ?+ \input ->
-           liftIO (runProcessWithInput "qalc" ["-c=off"] input) >>= calcPrompt c . (!! 2) . lines
-
 -- | A list of prompts and a key press assigned to them.
 --
--- * [@m@] : A prompt for manpages.
--- * [@s@] : A ssh prompt.
--- * [@=@] : A calculator prompt.
+-- [@m@] : A prompt for manpages.
+-- [@p@] : A password store prompt.
+-- [@=@] : A calculator prompt.
 spawnPrompt :: [(String, String, X ())]
-spawnPrompt = [ (k, dscr, f $ promptConfig CompletionOff) | (k, dscr, f) <- promptProviders ]
-  where
-    promptProviders =
-        [ ("m", "Manpage Prompt", manPrompt)
-        , ("s", "SSH Prompt"    , sshPrompt)
-        , ("=", "Qalc Prompt"   , flip calcPrompt "qalc")
-        ]
+spawnPrompt =
+    [ ("m", "Manpage Prompt"       , safeSpawnProg "rofi-man")
+    , ("p", "Password-store Prompt", safeSpawnProg "rofi-pass")
+    , ("=", "Qalc Prompt"          , safeSpawnProg "rofi-qalc")
+    ]
 
 -- | A list of search and a key press assigne to them.
--- * [@a@] : Arch Wiki.
--- * [@c@] : Clearlinux-pkgs.
--- * [@d@] : Vocabulary.com.
--- * [@g@] : Google.
--- * [@h@] : Hoogle.
--- * [@i@] : Google Image.
--- * [@m@] : Google Maps.
--- * [@t@] : Thesaurus.
--- * [@y@] : Youtube.
--- * [@\$@] : Amazon.
-searchProviders :: [(String, SearchEngine)]
+--
+-- [@a@] : Arch Linux Wiki.
+-- [@S-a@] : Arch Linux Package.
+-- [@c@] : Clear Linux Package.
+-- [@S-a@] : Clear Linux Bundle.
+-- [@d@] : DuckDuckGo.
+-- [@g@] : Google.
+-- [@h@] : Hoogle.
+-- [@i@] : Google Image.
+-- [@m@] : Google Maps.
+-- [@t@] : Thesaurus.
+-- [@w@] : Wikipedia.
+-- [@S-w@] : Wiktionary.
+-- [@y@] : Youtube.
+-- [@z@] : Wikipedia (zh).
+-- [@S-z@] : Wiktionary (zh).
+-- [@\$@] : Amazon.
+-- [@\/@] : Choose a search engine.
+searchProviders :: [(String, String, [String])]
 searchProviders =
-    [ ("a", archwiki)
-    , ("c", clpkg)
-    , ("d", S.vocabulary)
-    , ("g", S.google)
-    , ("h", S.hoogle)
-    , ("i", S.images)
-    , ("m", S.maps)
-    , ("t", S.thesaurus)
-    , ("w", S.wikipedia)
-    , ("y", S.youtube)
-    , ("$", S.amazon)
+    [ ("a"  , "Arch Linux Wiki"          , ["archwiki"])
+    , ("S-a", "Arch Linux Package"       , ["archpkg"])
+    , ("c"  , "Clear Linux Package"      , ["clearlinux", "-p"])
+    , ("S-c", "Clear Linux Bundle"       , ["clearlinux", "-b"])
+    , ("d"  , "DuckDuckGo"               , ["duckduckgo"])
+    , ("g"  , ""                         , ["google"])
+    , ("h"  , ""                         , ["hoogle"])
+    , ("i"  , "Google Image"             , ["google", "-i"])
+    , ("m"  , "Google Maps"              , ["google", "-m"])
+    , ("t"  , ""                         , ["Thesaurus"])
+    , ("w"  , ""                         , ["wikipedia"])
+    , ("S-w", ""                         , ["wiktionary"])
+    , ("y"  , ""                         , ["youtube"])
+    , ("z"  , "Wikipedia (zh)"           , ["wikipedia", "-l=zh"])
+    , ("S-z", "Wiktionary (zh)"          , ["wiktionary", "-l=zh"])
+    , ("$"  , ""                         , ["amazon"])
+    , ("/"  , "specified search provider", [""])
     ]
-  where
-    archwiki = S.searchEngine "archwiki" "https://wiki.archlinux.org/index.php?search="
-    clpkg    = S.searchEngine "clearlinux-pkgs"
-                              "https://github.com/clearlinux-pkgs?type=source&language=&q="
+-- NOTE: rofi-surfraw DISPLAYNAME ENGINE [OPTION ..] [QUERY ..]
+-- TODO: add Github etc
 
 -- | A list of search actions via each search engine, and a key assinged to it.
 searchWithInput :: [(String, String, X ())]
 searchWithInput =
-    [ (k, name, S.promptSearch (promptConfig CompletionOff) f)
-    | (k, f@(SearchEngine name _)) <- searchProviders
+    [ (k, desc, safeSpawn "rofi-surfraw" (desc : args))
+    | (k, name, args) <- searchProviders
+    , let desc = "Search on " ++ if name == "" then toPascalCase $ head args else name
     ]
 
 -- | Similar to 'searchWithInput' excpet that the query is the current selection.
 searchWithSelection :: [(String, String, X ())]
 searchWithSelection =
-    [ (k, name, S.selectSearch f) | (k, f@(SearchEngine name _)) <- searchProviders ]
+    [ ( k
+      , desc
+      , transformSafePromptSelection
+          (\query -> unwords $ desc : args ++ case query of
+              "" -> ["--", query]
+              _  -> []
+          )
+          "rofi-surfraw"
+      )
+    | (k, name, args) <- searchProviders
+    , let desc = "Search on "
+              ++ if name == "" then toPascalCase $ head args else name ++ " w/ input"
+    ]
+
+toPascalCase :: String -> String
+toPascalCase s = unwords . map capitalizeFirst $ words s
+  where
+    capitalizeFirst (c : cs) = toUpper c : map toLower cs
+    capitalizeFirst []       = []

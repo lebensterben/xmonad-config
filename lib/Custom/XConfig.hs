@@ -18,32 +18,14 @@ import           Custom.Hooks.StartupHook                 ( myStartupHook )
 import           Custom.Hooks.WindowNavigationHook        ( windowNavigationHook )
 import           Custom.Keymap                            ( installNamedMajorKeys )
 import           Custom.Keymap.MajorKeymap                ( myMajorKeymap )
-import           Custom.Layouts                           ( ComplexFloat
-                                                          , LayoutSelection
-                                                          , ComplexTall
-                                                          , ComplexGrid
-                                                          , ComplexThreeCol
-                                                          , ComplexBinaryPartition
-                                                          )
-import           Custom.MouseBindings                     ( installMouseBindings
+import           Custom.MouseBindings                     ( defineMouseBindings
                                                           , myMouseBindings
                                                           )
-import           Custom.ShowWName                         ( ShowWNameEscape )
-import           Custom.Util.XMobar                       ( xmobarMulti )
-import           Custom.Variables                         ( myXMobarPP
-                                                          , xmobarrc
-                                                          , baseXConfig
+import           Custom.Util.Polybar                      ( polybar )
+import           Custom.Variables                         ( baseXConfig
+                                                          , myStatusBarPP
                                                           )
-import           XMonad                                   ( XConfig )
 import           XMonad.Hooks.EwmhDesktops                ( ewmh )
-import           XMonad.Hooks.ManageDocks                 ( AvoidStruts )
-import           XMonad.Layout.LayoutModifier             ( ModifiedLayout )
-import           XMonad.Layout.MultiToggle                ( EOT
-                                                          , HCons
-                                                          , MultiToggle
-                                                          )
-import           XMonad.Layout.MultiToggle.Instances      ( StdTransformers )
-import           XMonad.Layout.ToggleLayouts              ( ToggleLayouts )
 
 ----------------------------------------------------------------------------------------------------
 -- XMonad Main Config
@@ -81,27 +63,8 @@ import           XMonad.Layout.ToggleLayouts              ( ToggleLayouts )
 --
 --     [@'XMonad.Core.startupHook'@]: Modifies directional window navigation strategies.
 --     TODO: UNFINISHED
-myXConfig :: XConfig
-                 ( ModifiedLayout
-                       AvoidStruts
-                       ( ModifiedLayout
-                             ShowWNameEscape
-                             ( ToggleLayouts
-                                   ComplexFloat
-                                   ( MultiToggle
-                                         (HCons StdTransformers (HCons StdTransformers EOT))
-                                         ( LayoutSelection
-                                               ComplexTall
-                                               ComplexThreeCol
-                                               ComplexBinaryPartition
-                                               ComplexGrid
-                                         )
-                                   )
-                             )
-                       )
-                 )
-myXConfig =
-    xmobarMulti xmobarrc myXMobarPP
+myXConfig dbus =
+    polybar dbus myStatusBarPP
         . ewmh
         . windowNavigationHook
         . myStartupHook
@@ -109,7 +72,7 @@ myXConfig =
         . myHandleEventHook
         . myLogHook
         . myLayoutHook
-        . flip installMouseBindings  myMouseBindings
+        . defineMouseBindings myMouseBindings
         . flip installNamedMajorKeys myMajorKeymap
         $ baseXConfig
 -- handleEventHook

@@ -12,17 +12,11 @@ module Custom.Configs.ShowWNameConfig
     (
     -- * ShowWName Config
       showWNameConfig
-    )
-where
+    ) where
 
-import           Custom.Util.Color                        ( ColorScheme(..) )
-import           Custom.Util.Font                         ( Font(..)
-                                                          , FontFace(..)
-                                                          , FontWeight(..)
-                                                          , FontSize(..)
-                                                          )
-import           Custom.Variables                         ( myColor
-                                                          , myFontSet
+import           Custom.Variables                         ( base8
+                                                          , colorBgAlt
+                                                          , myUIFont
                                                           )
 import           XMonad                                   ( def )
 import           XMonad.Layout.ShowWName                  ( SWNConfig(..) )
@@ -33,10 +27,10 @@ import           XMonad.Layout.ShowWName                  ( SWNConfig(..) )
 
 -- | Config for showing workspaces name.
 showWNameConfig :: SWNConfig
-showWNameConfig = def { swn_font    = show $ Font myFontSet UI Bold $ FontSize 60
-                      , swn_fade    = 1.0           -- fade after 1 second
-                      , swn_bgcolor = base1 myColor -- #1c1f24
-                      , swn_color   = base8 myColor -- #dfdfdf
+showWNameConfig = def { swn_font    = myUIFont 60.0 "bold"
+                      , swn_fade    = 1.0
+                      , swn_bgcolor = colorBgAlt -- #1c1f24
+                      , swn_color   = base8 -- #dfdfdf
                       }
 
 -- Local Variables:
