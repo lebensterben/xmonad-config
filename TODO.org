@@ -2,91 +2,24 @@
 #+AUTHOR: Lucius Hu
 #+STARTUP: content
 
-* Todos [4/15]:
+* Todos [0/4]:
 ** TODO Main [0/1]
 *** TODO =NamedScratchpad= section
-** TODO Custom.Configs [5/7]
-*** TODO Custom.Configs.Apps
-*** DONE Custom.Configs.GridSelectConfig                            :ARCHIVE:
-    CLOSED: [2020-12-01 Tue 03:14]
-*** DONE Custom.Configs.LayoutConfig                                :ARCHIVE:
-    CLOSED: [2020-11-30 Mon 22:04]
-*** DONE Custom.Configs.PromptConfig                                :ARCHIVE:
-    CLOSED: [2020-11-29 Sun 04:59]
-*** DONE Custom.Configs.ShowWNameConfig                             :ARCHIVE:
-    CLOSED: [2020-11-30 Mon 21:47]
-*** TODO Custom.Configs.TreeSelectConfig
-*** DONE Custom.Configs.WorkspacesConfig                            :ARCHIVE:
-    CLOSED: [2020-11-30 Mon 22:38]
-** TODO Custom.GridSelect [0/1]
-*** TODO Explore other types of grid menu
-** TODO Custom.Hooks [3/6]
+** TODO Custom.Hooks [0/2]
 *** TODO Custom.Hooks.HandleEventHook [0/1]
 **** TODO Fix the bug or discard this module
 *** TODO Custom.Hooks.LayoutHook [0/1]
 **** TODO Try other layout modifiers or decorations
-*** DONE Custom.Hooks.LogHook                                       :ARCHIVE:
-    CLOSED: [2020-11-30 Mon 00:23]
-*** TODO Custom.Hooks.ManageHook [0/1]
-**** TODO Refine the module
-*** DONE Custom.Hooks.StartupHook                                   :ARCHIVE:
-    CLOSED: [2020-11-29 Sun 22:03]
-*** DONE Custom.Hooks.WindowNavigationHook                          :ARCHIVE:
-    CLOSED: [2020-12-01 Tue 06:53]
-** TODO Custom.Keymap [0/2]
+** TODO Custom.Keymap [0/1]
 *** TODO Custom.Keymap.MajorKeymap [1/1]
-**** DONE Check XMonad.Util.NamedActions                            :ARCHIVE:
-     CLOSED: [2020-12-08 Tue 18:01]
-*** TODO Custom.Keymap.TreeSelectKeymap
-** DONE Custom.Layouts [1/1]                                        :ARCHIVE:
-   CLOSED: [2020-12-01 Tue 05:59]
-*** DONE Integrate with Float
-    CLOSED: [2020-12-01 Tue 05:53]
-** TODO Custom.MouseBindings
-** DONE Custom.Prompt                                               :ARCHIVE:
-   CLOSED: [2020-12-02 Wed 02:32]
-** TODO Custom.ShowWName [0/1]
-*** TODO Rename to =Custom.LayoutModifier.ShowWName=?
-** TODO Custom.TreeSelect [0/2]
-*** NEXT Add more treeselect actiosn
-**** TODO systemctl suspend/reboot/poweroff
-**** TODO systemctl --user restart emacs
-*** TODO Tree Select show message
-** TODO Custom.Util [2/5]
-*** TODO Custom.Util.Apps [1/1]
-**** DONE Replace ~spawn~ with ~safeSpawn~                          :ARCHIVE:
-     CLOSED: [2020-12-07 Mon 23:02]
-*** TODO Custom.Util.Color
-*** DONE Custom.Util.Font                                           :ARCHIVE:
-    CLOSED: [2020-12-02 Wed 08:56]
-*** DONE Custom.Util.TreeSelect                                     :ARCHIVE:
-    CLOSED: [2020-12-08 Tue 18:19]
-*** TODO Custom.Util.XMobar
-** TODO Custom.Variables [0/1]
-*** TODO separate the color module
-** DONE Custom.Windows                                              :ARCHIVE:
-   CLOSED: [2020-12-02 Wed 02:41]
-** DONE Custom.Workspaces                                           :ARCHIVE:
-   CLOSED: [2020-12-02 Wed 02:45]
 ** TODO Custom.XConfig
 
 
-* Ideas [2/13]
-** TODO Clean imports, combine them to more familiar modules
-** TODO Rename customization variables to =my*=
-** DONE Add variables such as workspaces formatter into Global      :ARCHIVE:
-   CLOSED: [2020-12-10 Thu 03:54]
+* Ideas [0/4]
 ** TODO Check ~XMonad.Actions.DynamicProjects~ or ~XMonad.Actions.TopicSpace~
 *** TODO Use dynamic work dir for cmds such as emacs dired
-** TODO The ~workspaces Clickable !! i~ is not ergonomic (still valid)
-** TODO Check other layouts
-** TODO Integrate 1Password to replace ~XMonad.Prompt.Pass~?
-** DONE FIXME server *mode*                                         :ARCHIVE:
-   CLOSED: [2020-12-08 Tue 15:26]
-** TODO Scratchpads
 ** TODO Emergent WS when receiving notification??
 ** TODO Dunst: Notification
-** TODO Generalise over color scheme and make mine as a default
 ** TODO https://wiki.archlinux.org/index.php/List_of_applications
 
    #+BEGIN_SRC shell :eval no-export :results none :exports none

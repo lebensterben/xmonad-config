@@ -12,12 +12,11 @@ module Custom.Hooks.HandleEventHook
     (
     -- * Handle Event Hook
       myHandleEventHook
-    )
-where
+    ) where
 
 import           XMonad                                   ( (<+>)
-                                                          , io
                                                           , XConfig(handleEventHook)
+                                                          , io
                                                           )
 import           XMonad.Hooks.EwmhDesktops                ( fullscreenEventHook )
 import           XMonad.Hooks.ServerMode                  ( serverModeEventHook

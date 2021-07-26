@@ -1,5 +1,4 @@
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GADTs #-}
 ----------------------------------------------------------------------------------------------------
 -- |
 -- Module      : Custom.Layouts
@@ -18,63 +17,59 @@ module Custom.Layouts
 
     -- * Tiling Layout
     , ComplexTall
-    , ComplexThreeCol
     , ComplexBinaryPartition
     , ComplexGrid
 
     -- * Collection Types
     , myLayouts
     , LayoutSelection
-    )
-where
+    ) where
 
 import           Custom.Configs.LayoutConfig              ( spacing
                                                           , tabbedConfig
-                                                          , BorderKind(Naive, Smart)
                                                           )
-import           XMonad                                   ( Window
-                                                          , LayoutClass
+import           XMonad                                   ( LayoutClass
+                                                          , Window
                                                           )
-import           XMonad.Layout.BinarySpacePartition       ( emptyBSP
-                                                          , BinarySpacePartition
+import           XMonad.Layout.BinarySpacePartition       ( BinarySpacePartition
+                                                          , emptyBSP
                                                           )
-import           XMonad.Layout.BorderResize               ( borderResize
-                                                          , BorderResize
+import           XMonad.Layout.BorderResize               ( BorderResize
+                                                          , borderResize
                                                           )
 import           XMonad.Layout.Decoration                 ( Decoration
                                                           , DefaultShrinker
                                                           , ModifiedLayout
                                                           )
 import           XMonad.Layout.GridVariants               ( Grid(Grid) )
-import           XMonad.Layout.LayoutCombinators          ( (|||)
-                                                          , NewSelect
+import           XMonad.Layout.LayoutCombinators          ( NewSelect
+                                                          , (|||)
                                                           )
-import           XMonad.Layout.LayoutHints                ( layoutHints
-                                                          , LayoutHints
+import           XMonad.Layout.LayoutHints                ( LayoutHints
+                                                          , layoutHints
                                                           )
 import           XMonad.Layout.LayoutModifier             ( LayoutModifier )
-import           XMonad.Layout.LimitWindows               ( limitWindows
-                                                          , LimitWindows
+import           XMonad.Layout.LimitWindows               ( LimitWindows
+                                                          , limitWindows
                                                           )
-import           XMonad.Layout.Renamed                    ( renamed
-                                                          , Rename(Replace)
+import           XMonad.Layout.Renamed                    ( Rename(Replace)
+                                                          , renamed
                                                           )
 import           XMonad.Layout.ResizableTile              ( ResizableTall(ResizableTall) )
 import           XMonad.Layout.Simplest                   ( Simplest(Simplest) )
-import           XMonad.Layout.SimplestFloat              ( simplestFloat
-                                                          , SimplestFloat
+import           XMonad.Layout.SimplestFloat              ( SimplestFloat
+                                                          , simplestFloat
                                                           )
 import           XMonad.Layout.Spacing                    ( Spacing )
-import           XMonad.Layout.SubLayouts                 ( subLayout
-                                                          , Sublayout
+import           XMonad.Layout.SubLayouts                 ( Sublayout
+                                                          , subLayout
                                                           )
-import           XMonad.Layout.Tabbed                     ( addTabs
+import           XMonad.Layout.Tabbed                     ( TabbedDecoration
+                                                          , addTabs
                                                           , shrinkText
-                                                          , TabbedDecoration
                                                           )
-import           XMonad.Layout.ThreeColumns               ( ThreeCol(ThreeCol) )
-import           XMonad.Layout.WindowArranger             ( windowArrange
-                                                          , WindowArranger
+import           XMonad.Layout.WindowArranger             ( WindowArranger
+                                                          , windowArrange
                                                           )
 
 ----------------------------------------------------------------------------------------------------
@@ -104,7 +99,7 @@ type ComplexLayout l
 -- * Rename the resulting layout.
 -- * Add tabbed subLayout.
 -- * Accept layout hints.
--- * Limit visible windows number.
+-- * Limit visible windows number to 12.
 -- * Add border spacing.
 complexModifiers :: ( Eq a
                     , LayoutModifier (Sublayout Simplest) a
@@ -112,22 +107,20 @@ complexModifiers :: ( Eq a
                     , LayoutClass l a
                     )
                  => String     -- ^ Rename.
-                 -> Int        -- ^ Max number of visible windows.
-                 -> BorderKind -- ^ Whether to add smart borders.
                  -> l a
                  -> ComplexLayout l a
-complexModifiers n wn b l =
+complexModifiers n l =
     renamed [Replace n]
         . addTabs shrinkText tabbedConfig
         . subLayout [] Simplest
         . layoutHints
-        . limitWindows wn
-        $ spacing b l
+        . limitWindows 12
+        $ spacing l
 
 -- | Combination of layouts I use.
 --
 -- __NOTE__: This is not generic at all.
-type LayoutSelection l1 l2 l3 l4 = NewSelect l1 (NewSelect l2 (NewSelect l3 l4))
+type LayoutSelection l1 l2 l3 = NewSelect l1 (NewSelect l2 l3)
 
 ----------------------------------------------------------------------------------------------------
 -- Float Window Layout
@@ -187,7 +180,7 @@ type ComplexTall = ComplexLayout ResizableTall
 -- * Simple spacing with width 4.
 
 tall :: ComplexTall Window
-tall = complexModifiers "tall" 12 Smart $ ResizableTall 1 (3 / 100) (1 / 2) []
+tall = complexModifiers "tall" $ ResizableTall 1 (3 / 100) (1 / 3) []
 
 ----------------------------------------------------------------------------------------------------
 -- Grid Layout
@@ -198,26 +191,11 @@ type ComplexGrid = ComplexLayout Grid
 -- | A Grid layout.
 --
 -- * Grid has 16:9 widht-to-height ratio.
--- * Has taabbed sublayout.
+-- * Has tabbed sublayout.
 -- * Show first 12 windows.
 -- * Simple spacing with width 4.
 grid :: ComplexGrid Window
-grid = complexModifiers "grid" 12 Smart $ Grid (16 / 9)
-
-----------------------------------------------------------------------------------------------------
--- Three Columns Layout
-----------------------------------------------------------------------------------------------------
-
-type ComplexThreeCol = ComplexLayout ThreeCol
-
--- | A ThreeColumns layout.
---
--- * Similar to Tall but has one 3 column.
--- * Has taabbed sublayout.
--- * Show first 12 windows.
--- * Simple spacing with width 4.
-threeCol :: ComplexThreeCol Window
-threeCol = complexModifiers "threeCol" 7 Smart $ ThreeCol 1 (3 / 100) (1 / 2)
+grid = complexModifiers "grid" $ Grid (16 / 9)
 
 ----------------------------------------------------------------------------------------------------
 -- Binary Partition Layout
@@ -229,11 +207,11 @@ type ComplexBinaryPartition = ComplexLayout BinarySpacePartition
 --
 -- * New window is spawned at location of current focus.
 -- * New window takes half of the size of current location.
--- * Has taabbed sublayout.
+-- * Has tabbed sublayout.
 -- * Show first 12 windows.
--- * Smart spacing with width 4.
+-- * Simple spacing with width 4.
 binary :: ComplexBinaryPartition Window
-binary = complexModifiers "binary" 12 Naive emptyBSP
+binary = complexModifiers "binary" emptyBSP
 
 ----------------------------------------------------------------------------------------------------
 -- My Layouts Selection
@@ -242,8 +220,7 @@ binary = complexModifiers "binary" 12 Naive emptyBSP
 -- | My selection of layouts.
 --
 -- * 'tall'
--- * 'threeCol'
 -- * 'binary'
 -- * 'grid'
-myLayouts :: LayoutSelection ComplexTall ComplexThreeCol ComplexBinaryPartition ComplexGrid Window
-myLayouts = tall ||| threeCol ||| binary ||| grid
+myLayouts :: LayoutSelection ComplexTall ComplexBinaryPartition ComplexGrid Window
+myLayouts = tall ||| binary ||| grid

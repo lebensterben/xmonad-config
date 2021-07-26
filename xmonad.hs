@@ -12,6 +12,7 @@
 
 module Main where
 
+import           Custom.Util.DBus                         ( mkDbusClient )
 import           Custom.XConfig                           ( myXConfig )
 import           XMonad.Main                              ( xmonad )
 
@@ -19,21 +20,15 @@ import           XMonad.Main                              ( xmonad )
 -- Entry point
 ----------------------------------------------------------------------------------------------------
 
--- 'myXmobar' launches the external myXmobar process and via
--- [@'Custom.XMobar.xmobarMulti'@]: Sets nice defaults for myXmobar status bar.
---
---     [@'XMonad.Core.startupHook'@]: 'XMonad.Hooks.ManageDocks.docksStartupHook'
---     [@'XMonad.Core.handleEventHook'@]:
---
---         [@'XMonad.Hooks.ManageDocks.docksEventHook'@]: Refresh the layout to avoid the new dock
---         when one appears.
 --
 --     [@'XMonad.Core.manageHook'@]:
 --
 --         [@'XMonad.Hooks.ManageDocks.manageDocks'@]: If a window is DOCK, reveals it but doesn't
 --         manage it.
 main :: IO ()
-main = xmonad myXConfig
+main = mkDbusClient >>= main'
+
+main' dbus = xmonad $ myXConfig dbus
 
 -- import           XMonad.Util.NamedScratchpad    ( customFloating
 --                                                 , namedScratchpadAction

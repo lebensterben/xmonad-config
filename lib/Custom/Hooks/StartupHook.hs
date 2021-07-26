@@ -13,7 +13,6 @@ module Custom.Hooks.StartupHook
       myStartupHook
     ) where
 
-import           Custom.Variables                         ( initializeStorage )
 import           XMonad                                   ( (<+>)
                                                           , XConfig(startupHook)
                                                           )
@@ -29,16 +28,14 @@ import           XMonad.Util.SpawnOnce                    ( spawnOnce )
 startUpApps :: [String]
 startUpApps =
     [ "/usr/local/bin/picom --experimental-backend"                 -- compositior
+    -- , "/usr/local/bin/mpd --no-daemon"
+    , "/usr/bin/mopidy"
+    , "/home/lucius/.config/polybar/launch.sh"
     , "/usr/libexec/gsd-xsettings"                                  -- gtk settings daemon
-    , "nm-applet"                                                   -- network tray icon
-    , "/usr/local/bin/pasystray"                                    -- volume tray icon
-    , "/usr/local/bin/trayer --edge top --align right --widthtype request --padding 6 \
-        \ --SetDockType true --SetPartialStrut true --expand true --monitor 1 --transparent true \
-        \ --alpha 0 --tint 0x282c34  --height 22"                   -- trayer
     , "fcitx5"                                                      -- IM daemon
-    -- , "ulauncher --hide-window"                                     -- app launcher
-    , "gnome-keyring-daemon --unlcok"                               -- prompt for login-password
+    , "gnome-keyring-daemon --unlock"                               -- prompt for login-password
     , "dropbox start -i"                                            -- dropbox
+    , "nitrogen --restore"
     ]
 
 -- | Actions to run when starting up xmonad.
@@ -48,4 +45,4 @@ startUpApps =
 -- * Set \"WM\" (window manager) name to \"LG3D\", which supposedly fix a Java GUI program bug.
 myStartupHook :: XConfig l -> XConfig l
 myStartupHook conf =
-    conf { startupHook = initializeStorage <+> setWMName "LG3D" <+> mapM_ spawnOnce startUpApps }
+    conf { startupHook = setWMName "LG3D" <+> mapM_ spawnOnce startUpApps }

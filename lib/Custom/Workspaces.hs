@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE LambdaCase #-}
 ----------------------------------------------------------------------------------------------------
 -- |
 -- Module      : Custom.Workspaces
@@ -11,14 +11,8 @@
 
 module Custom.Workspaces
     (
-      -- * Workspaces
-      wsLabels
-    , wsFind
-    , Workspaces(..)
-    , WorkspacesStorage(..)
-
       -- * Workspaces Filter
-    , WSFilter(..)
+      WSFilter(..)
 
       -- * Workspaces Navigation
 
@@ -33,71 +27,37 @@ module Custom.Workspaces
       -- * Screen Navigation
     , moveToScreen
     , shiftToScreen
+
+      -- * Util
+    , mergeToMaster
+    , smartSink
+    , smartSinkAll
     ) where
 
-import           Data.List                                ( elemIndex )
+import qualified Data.Map                                as M
 import           Data.Maybe                               ( isJust )
-import           XMonad                                   ( ExtensionClass(..)
-                                                          , Typeable
-                                                          , WorkspaceId
-                                                          , windows
+import           XMonad                                   ( WorkspaceId
                                                           , X
+                                                          , sendMessage
+                                                          , whenJust
+                                                          , windows
+                                                          , withFocused
+                                                          , withWindowSet
                                                           )
-import           XMonad.Actions.CycleWS                   ( moveTo
+import           XMonad.Actions.CycleWS                   ( WSType(WSIs)
+                                                          , moveTo
                                                           , nextScreen
                                                           , prevScreen
                                                           , shiftNextScreen
                                                           , shiftPrevScreen
                                                           , shiftTo
-                                                          , WSType(WSIs)
                                                           )
+import           XMonad.Actions.WithAll                   ( sinkAll )
+import           XMonad.Config.Prime                      ( Window )
+import           XMonad.Layout.SubLayouts                 ( GroupMsg(Merge, UnMergeAll) )
 import qualified XMonad.StackSet                         as W
-import qualified XMonad.Util.ExtensibleState             as XS
+import           XMonad.StackSet                          ( floating )
 import           XMonad.Util.Types                        ( Direction1D(..) )
-
-----------------------------------------------------------------------------------------------------
--- Workspaces
-----------------------------------------------------------------------------------------------------
-
--- Currently only store wsLbls, and don't support dynamic workspaces yet
--- | A storage for workspace raw labels.
---
--- Needs to be initialised during starting up, via 'XMonad.Util.ExtensibleState.put', and can be
--- retrieved via 'XMonad.Util.ExtensibleState.get'.
-newtype WorkspacesStorage = WorkspacesStorage Workspaces deriving Typeable
-instance ExtensionClass WorkspacesStorage where
-    initialValue = WorkspacesStorage Workspaces { wsLbls = [], formatter = snd }
-
--- | Represents the set of workspaces in XMonad.
---
--- >>> myWorkspacesLbl = ["1", "2", "3"]
--- >>> Workspaces { wsLbls = myWorkspacesLbl, formatter = /omitted/ }
--- Workspaces { wsLbls = ["1","2","3"] }
-data Workspaces = Workspaces
-    { wsLbls    :: [WorkspaceId] -- ^ Labels of workspaces.
-    , formatter :: (Int, WorkspaceId) -> WorkspaceId
-                   -- ^ Function that formats the raw labels, e.g. adding extra
-                   --   spacings, and adding XMobar action tag.
-    }
-
-instance Show Workspaces where
-    show wss = "Workspaces { wsLbls = " ++ show (wsLbls wss) ++ ", formatter = /omitted/" ++ " }"
-
--- | Retrieve the list of workspaces labels, formatted with the formatter, and add xmobar actions
--- according to whether it's clickable.
-wsLabels :: Workspaces -> [WorkspaceId]
-wsLabels Workspaces { wsLbls = lbls, formatter = fmt } =
-    zipWith (curry fmt) [1 .. length lbls] lbls
-
--- | Given a workspace tag, find it in current workspaces, and reformat it appropriately.
--- If it's not found, return @Nothing@.
-wsFind :: WorkspaceId -> X (Maybe WorkspaceId)
-wsFind x = do
-    -- Get the original unformated workspace tags, and the formatter
-    (WorkspacesStorage Workspaces { wsLbls = lbls, formatter = fmt }) <- XS.get
-    case elemIndex x lbls of
-        Just i  -> return $ Just (fmt (i + 1, lbls !! i))
-        Nothing -> return Nothing
 
 ----------------------------------------------------------------------------------------------------
 -- Workspaces Filter
@@ -113,51 +73,52 @@ data WSFilter
 filterWS :: WSFilter -> WSType
 filterWS fil = case fil of
     None               -> WSIs (return (const True))
-    NonScratchPad      -> WSIs (return (\ws -> W.tag ws /= "nsp"))
-    NonEmptyScratchPad -> WSIs (return (\ws -> isJust (W.stack ws) && W.tag ws /= "nsp"))
+    NonScratchPad      -> WSIs (return (\ws -> W.tag ws /= "NSP"))
+    NonEmptyScratchPad -> WSIs (return (\ws -> isJust (W.stack ws) && W.tag ws /= "NSP"))
 
 ----------------------------------------------------------------------------------------------------
 -- Workspaces Navigation
 ----------------------------------------------------------------------------------------------------
 
+toOrdinal :: Int -> String
+toOrdinal i = case last i' of
+    '1' -> i' ++ "st"
+    '2' -> i' ++ "nd"
+    '3' -> i' ++ "rd"
+    _   -> i' ++ "th"
+    where i' = show i
+
 -- | View the workspace in the given direction with a given filter.
-moveToWS :: String                  -- ^ Prefix keys, ends with a \"-\", e.g. @"M-C-"@
-         -> [(String, Direction1D)] -- ^ Lists of keys-directions pairs, e.g.
+moveToWS :: [(String, Direction1D)] -- ^ Lists of keys-directions pairs, e.g.
                                     --   @[("h", L), ("j", D)]@
          -> WSFilter                -- ^ Filters for candidate workspaces.
-         -> [(String, Direction1D, X ())]
-moveToWS prefix bindings fil =
-    [ (prefix ++ key, dir, moveTo dir $ filterWS fil) | (key, dir) <- bindings ]
+         -> [(String, String, X ())]
+moveToWS bindings fil = [ (key, show dir, moveTo dir $ filterWS fil) | (key, dir) <- bindings ]
 
 -- | Assign \"Prefix-[1..9]\" keys for switching to i-th workspace.
-moveToWS' :: Workspaces -- ^ Workspaces used in current config
-          -> String     -- ^ Prefix keys, ends with a \"-\", e.g. @"M-C-"@
-          -> [(String, Int, X ())]
-moveToWS' wss prefix =
-    [ (prefix ++ show index, index, windows $ W.greedyView ws)
-    | let wsl = wsLabels wss
-    , (ws, index) <- zip wsl [1 .. length wsl]
+moveToWS' :: [WorkspaceId] -- ^ Workspaces used in current config
+          -> [(String, String, X ())]
+moveToWS' wss =
+    [ (show index, toOrdinal index, windows $ W.greedyView ws)
+    | (ws, index) <- zip wss [1 .. length wss]
     ]
 
 -- | Move the focused window to the workspace in the given direction with a given filter, and keep
 -- the window under focus.
-shiftToWS :: String                  -- ^ Prefix keys, ends with a \"-\", e.g. @"M-C-"@
-          -> [(String, Direction1D)] -- ^ Lists of keys-directions pairs, e.g.
+shiftToWS :: [(String, Direction1D)] -- ^ Lists of keys-directions pairs, e.g.
                                      --   @[("h", L), ("j", D)]@
           -> WSFilter                -- ^ Filters for candidate workspaces.
-          -> [(String, Direction1D, X ())]
-shiftToWS prefix bindings fil =
-    [ (prefix ++ key, dir, shiftTo dir wsFilter >> moveTo dir wsFilter) | (key, dir) <- bindings ]
+          -> [(String, String, X ())]
+shiftToWS bindings fil =
+    [ (key, show dir, shiftTo dir wsFilter >> moveTo dir wsFilter) | (key, dir) <- bindings ]
     where wsFilter = filterWS fil
 
 -- | Assign \"Prefix-[1..9]\" keys for shifting focused window and follow it to i-th workspace.
-shiftToWS' :: Workspaces -- ^ Workspaces used in current config
-           -> String     -- ^ Prefix keys, ends with a \"-\", e.g. @"M-C-"@
-           -> [(String, Int, X ())]
-shiftToWS' wss prefix =
-    [ (prefix ++ show index, index, windows (W.shift ws) >> windows (W.greedyView ws))
-    | let wsl = wsLabels wss
-    , (ws, index) <- zip wsl [1 .. length wsl]
+shiftToWS' :: [WorkspaceId] -- ^ Workspaces used in current config
+           -> [(String, String, X ())]
+shiftToWS' wss =
+    [ (show index, toOrdinal index, windows (W.shift ws) >> windows (W.greedyView ws))
+    | (ws, index) <- zip wss [1 .. length wss]
     ]
 
 ----------------------------------------------------------------------------------------------------
@@ -165,24 +126,52 @@ shiftToWS' wss prefix =
 ----------------------------------------------------------------------------------------------------
 
 -- | View the screen in the specified direction.
-moveToScreen :: String                  -- ^ Prefix keys, ends with a \"-\", e.g. @"M-C-"@
-             -> [(String, Direction1D)] -- ^ Lists of keys-directions pairs, e.g.
+moveToScreen :: [(String, Direction1D)] -- ^ Lists of keys-directions pairs, e.g.
                                         --   @[("h", L), ("j", D)]@
-             -> [(String, Direction1D, X ())]
-moveToScreen prefix bindings =
-    [ (prefix ++ key, dir, if dir == Prev then prevScreen else nextScreen)
-    | (key, dir) <- bindings
-    ]
+             -> [(String, String, X ())]
+moveToScreen bindings =
+    [ (key, show dir, if dir == Prev then prevScreen else nextScreen) | (key, dir) <- bindings ]
 
 -- | Move the focused window to the specified direction and keep the window under focus.
-shiftToScreen :: String                  -- ^ Prefix keys, ends with a \"-\", e.g. @"M-C-"@
-              -> [(String, Direction1D)] -- ^ Lists of keys-directions pairs, e.g.
+shiftToScreen :: [(String, Direction1D)] -- ^ Lists of keys-directions pairs, e.g.
                                          --   @[("h", L), ("j", D)]@
-              -> [(String, Direction1D, X ())]
-shiftToScreen prefix bindings =
-    [ ( prefix ++ key
-      , dir
+              -> [(String, String, X ())]
+shiftToScreen bindings =
+    [ ( key
+      , show dir
       , if dir == Prev then shiftPrevScreen >> prevScreen else shiftNextScreen >> nextScreen
       )
     | (key, dir) <- bindings
     ]
+
+----------------------------------------------------------------------------------------------------
+-- Util
+----------------------------------------------------------------------------------------------------
+
+getMaster :: X (Maybe Window)
+getMaster = withWindowSet $ \ws -> case W.index ws of
+    []      -> return Nothing
+    (x : _) -> return $ Just x
+
+-- | Merge focused window to master window of current workspace.
+mergeToMaster :: X ()
+mergeToMaster = withFocused mergeToMaster'
+
+mergeToMaster' :: Window -> X ()
+mergeToMaster' focused = getMaster >>= \case
+    Just master | master /= focused -> sendMessage $ Merge focused master
+    _                               -> return ()
+
+-- | Unfloat or unmerge the focused window, if any.
+-- When the window is floating, it cannot have @Tabbed@ sublayout, and this action unfloat it.
+-- Otherwise, try to unmerge the window.
+smartSink :: X ()
+smartSink = withWindowSet $ \ws -> whenJust (W.peek ws) $ \focused ->
+    if M.member focused (floating ws) then windows $ W.sink focused else mergeToMaster' focused
+
+-- | Unfloat or unmerge all windows in current workspace, if any.
+-- When current layout is floating, unfloat all windows.
+-- Otherwise, try to unmerge all windows.
+smartSinkAll :: X ()
+smartSinkAll = withWindowSet $ \ws -> whenJust (W.peek ws)
+    $ \focused -> if M.null (floating ws) then sendMessage $ UnMergeAll focused else sinkAll
