@@ -17,16 +17,10 @@ import           XMonad                                   ( (=?)
                                                           , Default(def)
                                                           , Dimension
                                                           , Full
-                                                          , KeyMask
                                                           , Mirror
                                                           , Tall
                                                           , WorkspaceId
-                                                          , XConfig
-                                                              ( borderWidth
-                                                              , modMask
-                                                              , terminal
-                                                              , workspaces
-                                                              )
+                                                          , XConfig(..)
                                                           , className
                                                           , mod4Mask
                                                           )
@@ -37,14 +31,6 @@ import           XMonad.Util.NamedScratchpad              ( NamedScratchpad(NS)
                                                           , customFloating
                                                           , namedScratchpadFilterOutWorkspacePP
                                                           )
-
-----------------------------------------------------------------------------------------------------
--- Modifier keys
-----------------------------------------------------------------------------------------------------
-
--- | Set User-Defined Mod key \"M\" to \"Super_L\".
-myModKey :: KeyMask
-myModKey = mod4Mask
 
 ----------------------------------------------------------------------------------------------------
 -- Font
@@ -147,7 +133,7 @@ myStatusBarPP = namedScratchpadFilterOutWorkspacePP $ def
 
 
 baseXConfig :: XConfig (Choose Tall (Choose (Mirror Tall) Full))
-baseXConfig = def { modMask     = myModKey
+baseXConfig = def { modMask     = mod4Mask -- Set User-Defined Mod key \"M\" to \"Super_L\".
                   , terminal    = "alacritty"
                   , borderWidth = myBorderWidth
                   , workspaces  = myWorkspaces

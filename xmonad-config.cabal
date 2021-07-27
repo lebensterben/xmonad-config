@@ -30,16 +30,17 @@ executable xmonadcfg
     Custom.XConfig
 
   build-depends:
-      base
-    , containers
-    , dbus
-    , directory
-    , filepath
-    , mtl
-    , utf8-string
-    , X11
-    , xmonad          >=0.15
-    , xmonad-contrib  >=0.16
+                    base
+                  , X11
+                  , containers
+                  , dbus
+                  , directory
+                  , filepath
+                  , mtl
+                  , unordered-containers
+                  , utf8-string
+                  , xmonad          >=0.15
+                  , xmonad-contrib  >=0.16
 
   hs-source-dirs:   lib
   default-language: Haskell2010
