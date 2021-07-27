@@ -19,7 +19,7 @@ import           Custom.Layouts                           ( ComplexBinaryPartiti
                                                           , floats
                                                           , myLayouts
                                                           )
-import           XMonad                                   ( XConfig(layoutHook) )
+import           XMonad                                   ( Window )
 import           XMonad.Layout.LayoutModifier             ( ModifiedLayout )
 import           XMonad.Layout.MultiToggle                ( (??)
                                                           , EOT(EOT)
@@ -35,24 +35,16 @@ import           XMonad.Layout.ToggleLayouts              ( ToggleLayouts
                                                           , toggleLayouts
                                                           )
 
-myLayoutHook :: XConfig l
-             -> XConfig
-                    ( ModifiedLayout
-                          ShowWName
-                          ( ToggleLayouts
-                                ComplexFloat
-                                ( MultiToggle
-                                      (HCons StdTransformers (HCons StdTransformers EOT))
-                                      ( LayoutSelection
-                                            ComplexTall
-                                            ComplexBinaryPartition
-                                            ComplexGrid
-                                      )
-                                )
-                          )
+type MultiToggleLayouts l1 l2 l3
+    = MultiToggle (HCons StdTransformers (HCons StdTransformers EOT)) (LayoutSelection l1 l2 l3)
+
+myLayoutHook :: ModifiedLayout
+                    ShowWName
+                    ( ToggleLayouts
+                          ComplexFloat
+                          (MultiToggleLayouts ComplexTall ComplexBinaryPartition ComplexGrid)
                     )
-myLayoutHook conf = conf
-    { layoutHook = showWName' showWNameConfig . toggleLayouts floats $ mkToggle
-                       (NBFULL ?? NOBORDERS ?? EOT)
-                       myLayouts
-    }
+                    Window
+myLayoutHook = showWName' showWNameConfig . toggleLayouts floats $ mkToggle
+    (NBFULL ?? NOBORDERS ?? EOT)
+    myLayouts

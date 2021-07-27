@@ -1,18 +1,15 @@
 -- TODO: doc
-module Custom.MouseBindings (defineMouseBindings, myMouseBindings) where
+module Custom.MouseBindings (myMouseBindings) where
 
 import qualified Data.Map                                as M
 import           XMonad                                   ( Button
-                                                          , ButtonMask
                                                           , KeyMask
-                                                          , Layout
                                                           , Window
                                                           , X
-                                                          , XConfig(XConfig, modMask)
+                                                          , XConfig(..)
                                                           , button1
                                                           , button3
                                                           , focus
-                                                          , mouseBindings
                                                           , mouseMoveWindow
                                                           , mouseResizeWindow
                                                           )
@@ -21,11 +18,6 @@ import           XMonad.Actions.FloatSnap                 ( Direction2D(D, R)
                                                           , snapMagicMove
                                                           , snapMagicResize
                                                           )
-defineMouseBindings :: (XConfig Layout -> M.Map (ButtonMask, Button) (Window -> X ()))
-                    -> XConfig l
-                    -> XConfig l
-defineMouseBindings bindings conf = conf { mouseBindings = bindings }
-
 myMouseBindings :: XConfig l -> M.Map (KeyMask, Button) (Window -> X ())
 myMouseBindings XConfig { modMask = myModMask } = M.fromList
     [ ( (myModMask, button1)

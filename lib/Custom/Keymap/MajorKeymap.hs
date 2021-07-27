@@ -16,9 +16,7 @@ import           Custom.Prompt                            ( searchWithInput
                                                           , searchWithSelection
                                                           , spawnPrompt
                                                           )
-import           Custom.Variables                         ( myScratchPads
-                                                          , myWorkspaces
-                                                          )
+import           Custom.Variables                         ( myScratchPads )
 import           Custom.Workspaces                        ( WSFilter(..)
                                                           , mergeToMaster
                                                           , moveToScreen
@@ -36,9 +34,10 @@ import           XMonad                                   ( ChangeLayout(NextLay
                                                           , KeyMask
                                                           , KeySym
                                                           , Resize(..)
+                                                          , WorkspaceId
                                                           , X
                                                           , XConf(config)
-                                                          , XConfig(terminal)
+                                                          , XConfig(terminal, workspaces)
                                                           , asks
                                                           , sendMessage
                                                           , spawn
@@ -89,11 +88,11 @@ import           XMonad.Util.Types                        ( Direction1D(..)
 myMajorKeymap :: XConfig l -> [((KeyMask, KeySym), NamedAction)]
 myMajorKeymap conf =
     foldl' (^++^) mempty
-        . map (`mkNamedKeymap'` conf)
+        . map (mkNamedKeymap' conf)
         $ [ xmonadManagement
           , windowNavigation
           , windowResize
-          , workspaceNavigation
+          , workspaceNavigation . filter (/= "NSP") $ workspaces conf
           , killWindow
           , layoutCmds
           , promptCommands
@@ -167,16 +166,16 @@ windowResize = map f [("h", L, Shrink), ("l", R, Expand)]
 -- [@M-S-C-\<h, l>@]: Move focused window to the screen in that direction.
 -- [@M-\<1..9>@]: Jump to i-th workspace.
 -- [@M-S-\<1..9>@]: Bring focused window to i-th workspace.
-workspaceNavigation :: [(String, String, X ())]
-workspaceNavigation =
+workspaceNavigation :: [WorkspaceId] -> [(String, String, X ())]
+workspaceNavigation wss =
     [ (prefix ++ suffix, descPre ++ " " ++ desc ++ " " ++ descSuf, action)
     | (prefix, descPre, descSuf, source) <-
         [ ("M-C-"  , "Go to"                  , "Workspace", moveToWS d1WSmapping NonScratchPad)
         , ("M-S-C-", "Shift focused window to", "Workspace", shiftToWS d1WSmapping NonScratchPad)
         , ("M-C-"  , "Go to"                  , "Screen"   , moveToScreen d1SCmapping)
         , ("M-S-C-", "Shift focused window to", "Screen"   , shiftToScreen d1SCmapping)
-        , ("M-"    , "Go to"                  , "Workspace", moveToWS' myWorkspaces)
-        , ("M-S-"  , "Shift focused window to", "Workspace", shiftToWS' myWorkspaces)
+        , ("M-"    , "Go to"                  , "Workspace", moveToWS' wss)
+        , ("M-S-"  , "Shift focused window to", "Workspace", shiftToWS' wss)
         ]
     , (suffix, desc, action)             <- source
     ]

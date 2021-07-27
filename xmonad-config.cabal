@@ -16,7 +16,6 @@ executable xmonadcfg
     Custom.Hooks.LogHook
     Custom.Hooks.ManageHook
     Custom.Hooks.StartupHook
-    Custom.Hooks.WindowNavigationHook
     Custom.Keymap
     Custom.Keymap.MajorKeymap
     Custom.Layouts
@@ -27,7 +26,6 @@ executable xmonadcfg
     Custom.Util.Polybar
     Custom.Variables
     Custom.Workspaces
-    Custom.XConfig
 
   build-depends:
                     base

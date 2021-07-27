@@ -14,7 +14,7 @@ module Custom.Hooks.StartupHook
     ) where
 
 import           XMonad                                   ( (<+>)
-                                                          , XConfig(startupHook)
+                                                          , X
                                                           )
 import           XMonad.Hooks.SetWMName                   ( setWMName )
 import           XMonad.Util.SpawnOnce                    ( spawnOnce )
@@ -43,6 +43,5 @@ startUpApps =
 -- * Set X Cursor.
 -- * Launch external programs. See 'startUpApps'.
 -- * Set \"WM\" (window manager) name to \"LG3D\", which supposedly fix a Java GUI program bug.
-myStartupHook :: XConfig l -> XConfig l
-myStartupHook conf =
-    conf { startupHook = setWMName "LG3D" <+> mapM_ spawnOnce startUpApps }
+myStartupHook :: X ()
+myStartupHook = setWMName "LG3D" <+> mapM_ spawnOnce startUpApps

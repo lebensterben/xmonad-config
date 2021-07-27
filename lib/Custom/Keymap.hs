@@ -12,7 +12,7 @@ module Custom.Keymap
     (
       -- * Utility function for adding global bindings
       mkNamedKeymap'
-    , installNamedMajorKeys
+    , addNamedKeys
     ) where
 
 import           Control.Exception                        ( SomeException(SomeException)
@@ -38,10 +38,10 @@ import           XMonad                                   ( KeyMask
                                                           , KeySym
                                                           , Layout
                                                           , X
-                                                          , XConfig(modMask)
+                                                          , XConfig
                                                           , getXMonadDataDir
                                                           , io
-                                                          , spawn
+                                                          , modMask
                                                           , xK_F1
                                                           )
 import           XMonad.Util.EZConfig                     ( mkNamedKeymap )
@@ -51,6 +51,7 @@ import           XMonad.Util.NamedActions                 ( NamedAction
                                                           , noName
                                                           , showKmSimple
                                                           )
+import           XMonad.Util.Run                          ( safeSpawnProg )
 
 ----------------------------------------------------------------------------------------------------
 -- Utility function for installing global bindings
@@ -60,20 +61,20 @@ addName' desc = addName (padDescription desc)
     where padDescription x = "<span><big>" ++ x ++ "</big></span>"
 
 -- | Generates a named keybindings section with descriptions.
-mkNamedKeymap' :: [(String, String, X ())] -- ^ A list of binding-description-action tripples.
-               -> XConfig l                -- ^ A 'XConfig' used to determine proper modifie
+mkNamedKeymap' :: XConfig l                -- ^ A 'XConfig' used to determine proper modifie
+               -> [(String, String, X ())] -- ^ A list of binding-description-action tripples.
                                                  --   key.
                -> [((KeyMask, KeySym), NamedAction)]
-mkNamedKeymap' ks conf = mkNamedKeymap conf keymap
-    where keymap = map (\(k, desc, x) -> (k, if desc == "" then noName x else addName' desc x)) ks
+mkNamedKeymap' conf ks = mkNamedKeymap conf keymap
+    where keymap = map (\(k, desc, x) -> (k, if null desc then noName x else addName' desc x)) ks
 
--- | Replace the keybindings in a 'XConfig' with the supplied one.
-installNamedMajorKeys :: XConfig l -- ^ The original 'XConfig' that is modified upon.
-                      -> (XConfig Layout -> [((KeyMask, KeySym), NamedAction)])
-                                   -- ^ A list of binding-description-action tripples
-                      -> XConfig l
-installNamedMajorKeys conf keyList =
-    addDescrKeys' ((modMask conf, xK_F1), showKeyBindings) keyList conf
+
+-- | Add keybindings with descriptions (without merging defaults).
+addNamedKeys :: (XConfig Layout -> [((KeyMask, KeySym), NamedAction)])
+                -- ^ A list of binding-description-action tripples
+             -> XConfig l -- ^ The original 'XConfig' that is modified upon.
+             -> XConfig l
+addNamedKeys keyList conf = addDescrKeys' ((modMask conf, xK_F1), showKeyBindings) keyList conf
 
 ----------------------------------------------------------------------------------------------------
 -- Utility function for displaying global bindings
@@ -81,11 +82,8 @@ installNamedMajorKeys conf keyList =
 -- | Display all available global key bindings.
 showKeyBindings :: [((KeyMask, KeySym), NamedAction)] -> NamedAction
 showKeyBindings x =
-    addName' "Show Keybindings"
-        $  io
-        $  do
-               regenerateKeyBindings $ showKmSimple x
-        >> spawn "rofi-xmonad-keys"
+    addName' "Show Keybindings" $ io $ regenerateKeyBindings (showKmSimple x) >> safeSpawnProg
+        "rofi-xmonad-keys"
 
 regenerateKeyBindings :: [String] -> IO ()
 regenerateKeyBindings bindings = do

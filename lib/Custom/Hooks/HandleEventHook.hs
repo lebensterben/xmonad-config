@@ -14,8 +14,10 @@ module Custom.Hooks.HandleEventHook
       myHandleEventHook
     ) where
 
+import           Data.Monoid                              ( All )
+import qualified Graphics.X11.Xlib.Extras                as X11
 import           XMonad                                   ( (<+>)
-                                                          , XConfig(handleEventHook)
+                                                          , X
                                                           , io
                                                           )
 import           XMonad.Hooks.EwmhDesktops                ( fullscreenEventHook )
@@ -34,11 +36,10 @@ import           XMonad.Layout.LayoutHints                ( hintsEventHook )
 -- Consists of following parts:
 --
 -- * Recevies commands from an external client
-myHandleEventHook :: XConfig l -> XConfig l
-myHandleEventHook conf = conf
-    { handleEventHook = serverModeEventHookCmd
-                        <+> serverModeEventHook
-                        <+> serverModeEventHookF "XMONAD_PRINT" (io . putStrLn)
-                        <+> hintsEventHook
-                        <+> fullscreenEventHook
-    }
+myHandleEventHook :: X11.Event -> X All
+myHandleEventHook =
+    serverModeEventHookCmd
+        <+> serverModeEventHook
+        <+> serverModeEventHookF "XMONAD_PRINT" (io . putStrLn)
+        <+> hintsEventHook
+        <+> fullscreenEventHook

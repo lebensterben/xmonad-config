@@ -27,11 +27,9 @@ import           XMonad                                   ( (-->)
                                                           , ManageHook
                                                           , Query
                                                           , WorkspaceId
-                                                          , XConfig(manageHook)
                                                           , className
                                                           , composeAll
                                                           , doShift
-                                                          , workspaces
                                                           )
 import           XMonad.Hooks.ManageHelpers               ( (-->>)
                                                           , (</=?)
@@ -78,11 +76,11 @@ centerFloatClasses = S.fromList
 --
 -- * It's class name matches a record in 'shiftWSClassses'.
 -- * The specified workspace is present in current @XConfig@.
-shiftToMatchedWS :: Query String -> XConfig l -> ManageHook
-shiftToMatchedWS cname conf = cname <&> matchClassName & filterAndShift
+shiftToMatchedWS :: Query String -> [WorkspaceId] -> ManageHook
+shiftToMatchedWS cname wss = cname <&> matchClassName & filterAndShift
   where
     matchClassName :: String -> Maybe WorkspaceId
-    matchClassName = (`M.lookup` shiftWSClassses) >=> (`find` workspaces conf) . (==)
+    matchClassName = (`M.lookup` shiftWSClassses) >=> (`find` wss) . (==)
 
     filterAndShift :: Query (Maybe WorkspaceId) -> ManageHook
     filterAndShift = (-->> doShift . fromJust) . (</=? Nothing)
@@ -93,13 +91,11 @@ shiftToMatchedWS cname conf = cname <&> matchClassName & filterAndShift
 -- * If the new window is a dialog, make it a centered float window
 -- * If the new window is transient, sends it to its parent window
 -- * If certain 'XMonad.Query' returns true, sent the window to a given workspace.
-myManageHook :: XConfig l -> XConfig l
-myManageHook conf = conf
-    { manageHook = composeAll
-        [ shiftToMatchedWS className conf
-        , namedScratchpadManageHook myScratchPads
-        , isFullscreen --> doFullFloat
-        , isDialog <||> fmap (`S.member` centerFloatClasses) className --> doCenterFloat
-        , transience' -- send transient window to its parent
-        ]
-    }
+myManageHook :: [WorkspaceId] -> ManageHook
+myManageHook wss = composeAll
+    [ shiftToMatchedWS className wss
+    , namedScratchpadManageHook myScratchPads
+    , isFullscreen --> doFullFloat
+    , isDialog <||> fmap (`S.member` centerFloatClasses) className --> doCenterFloat
+    , transience' -- send transient window to its parent
+    ]

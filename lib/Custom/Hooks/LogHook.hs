@@ -12,12 +12,11 @@ module Custom.Hooks.LogHook
     (
     -- * Log Hook
       myLogHook
-    )
-where
+    ) where
 
 import           Custom.Variables                         ( inactiveWindowFadeAmount )
 import           XMonad                                   ( (<+>)
-                                                          , XConfig(logHook)
+                                                          , X
                                                           )
 import           XMonad.Actions.SwapPromote               ( masterHistoryHook )
 import           XMonad.Hooks.FadeInactive                ( fadeInactiveLogHook )
@@ -32,9 +31,6 @@ import           XMonad.Hooks.WorkspaceHistory            ( workspaceHistoryHook
 -- * 'workspaceHistoryHook': Keeps track of the order in which workspaces are viewed.
 -- * 'fadeInactiveLogHook': Makes inactive window a bit dimmer.
 -- TODO: history hook
-myLogHook :: XConfig l -> XConfig l
-myLogHook conf = conf
-    { logHook = workspaceHistoryHook
-                <+> fadeInactiveLogHook inactiveWindowFadeAmount
-                <+> masterHistoryHook
-    }
+myLogHook :: X ()
+myLogHook =
+    workspaceHistoryHook <+> fadeInactiveLogHook inactiveWindowFadeAmount <+> masterHistoryHook

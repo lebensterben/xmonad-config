@@ -13,16 +13,10 @@ module Custom.Variables where
 
 import           Custom.Util.Polybar                      ( polybarFgColor )
 import           XMonad                                   ( (=?)
-                                                          , Choose
                                                           , Default(def)
                                                           , Dimension
-                                                          , Full
-                                                          , Mirror
-                                                          , Tall
                                                           , WorkspaceId
-                                                          , XConfig(..)
                                                           , className
-                                                          , mod4Mask
                                                           )
 import           XMonad.Hooks.DynamicLog                  ( PP(..) )
 import qualified XMonad.StackSet                         as S
@@ -126,18 +120,6 @@ myStatusBarPP = namedScratchpadFilterOutWorkspacePP $ def
     , ppSep   = polybarFgColor base7 " │ \n"
       --                       -- #dfdfdf
     }
-
-----------------------------------------------------------------------------------------------------
--- Base XConfig
-----------------------------------------------------------------------------------------------------
-
-
-baseXConfig :: XConfig (Choose Tall (Choose (Mirror Tall) Full))
-baseXConfig = def { modMask     = mod4Mask -- Set User-Defined Mod key \"M\" to \"Super_L\".
-                  , terminal    = "alacritty"
-                  , borderWidth = myBorderWidth
-                  , workspaces  = myWorkspaces
-                  }
 
 -- Local Variables:
 -- eval: (when (fboundp 'xah-syntax-color-hex) (eval '(xah-syntax-color-hex)))
