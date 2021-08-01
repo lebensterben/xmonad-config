@@ -83,7 +83,7 @@ addNamedKeys keyList conf = addDescrKeys' ((modMask conf, xK_F1), showKeyBinding
 showKeyBindings :: [((KeyMask, KeySym), NamedAction)] -> NamedAction
 showKeyBindings x =
     addName' "Show Keybindings" $ io $ regenerateKeyBindings (showKmSimple x) >> safeSpawnProg
-        "rofi-xmonad-keys"
+        "/home/lucius/.local/bin/rofi-xmonad-keys"
 
 regenerateKeyBindings :: [String] -> IO ()
 regenerateKeyBindings bindings = do

@@ -27,14 +27,16 @@ import           XMonad.Util.SpawnOnce                    ( spawnOnce )
 -- | External programs to launch after xmonad.
 startUpApps :: [String]
 startUpApps =
-    [ "/usr/local/bin/picom --experimental-backend"                 -- compositior
+    [ "dex -a -s /home/lucius/.config/autostart/"
+    , "picom --experimental-backend"                 -- compositior
     -- , "/usr/local/bin/mpd --no-daemon"
-    , "/usr/bin/mopidy"
+    , "mopidy"
     , "/home/lucius/.config/polybar/launch.sh"
-    , "/usr/libexec/gsd-xsettings"                                  -- gtk settings daemon
-    , "fcitx5"                                                      -- IM daemon
+    , "/usr/lib/gsd-xsettings"                                      -- gtk settings daemon
+    -- , "fcitx5"                                                      -- IM daemon
     , "gnome-keyring-daemon --unlock"                               -- prompt for login-password
-    , "dropbox start -i"                                            -- dropbox
+    -- , "dropbox start -i"                                            -- dropbox
+    , "1password"
     , "nitrogen --restore"
     ]
 

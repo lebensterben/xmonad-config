@@ -36,9 +36,9 @@ import           XMonad.Util.XSelection                   ( transformSafePromptS
 -- [@=@] : A calculator prompt.
 spawnPrompt :: [(String, String, X ())]
 spawnPrompt =
-    [ ("m", "Manpage Prompt"       , safeSpawnProg "rofi-man")
+    [ ("m", "Manpage Prompt"       , safeSpawnProg "/home/lucius/.local/bin/rofi-man")
     , ("p", "Password-store Prompt", safeSpawnProg "rofi-pass")
-    , ("=", "Qalc Prompt"          , safeSpawnProg "rofi-qalc")
+    , ("=", "Qalc Prompt"          , safeSpawnProg "/home/lucius/.local/bin/rofi-qalc")
     ]
 
 -- | A list of search and a key press assigne to them.
@@ -86,7 +86,7 @@ searchProviders =
 -- | A list of search actions via each search engine, and a key assinged to it.
 searchWithInput :: [(String, String, X ())]
 searchWithInput =
-    [ (k, desc, safeSpawn "rofi-surfraw" (desc : args))
+    [ (k, desc, safeSpawn "/home/lucius/.local/bin/rofi-surfraw" (desc : args))
     | (k, name, args) <- searchProviders
     , let desc = "Search on " ++ if name == "" then toPascalCase $ head args else name
     ]
@@ -101,7 +101,7 @@ searchWithSelection =
               "" -> ["--", query]
               _  -> []
           )
-          "rofi-surfraw"
+          "/home/lucius/.local/bin/rofi-surfraw"
       )
     | (k, name, args) <- searchProviders
     , let desc = "Search on "

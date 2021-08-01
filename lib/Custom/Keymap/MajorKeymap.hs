@@ -109,8 +109,8 @@ xmonadManagement :: [(String, String, X ())]
 xmonadManagement =
     [ ("M-x " ++ suffix, desc, action)
     | (suffix, desc, action) <-
-        [ ("M-r", "Restart XMonad", safeSpawn "xmonadctl" ["restart-wm"])
-        , ("M-q", "Quit XMonad"   , safeSpawn "xmonadctl" ["quit-wm"])
+        [ ("M-r", "Restart XMonad", safeSpawn "/home/lucius/.local/bin/xmonadctl" ["restart-wm"])
+        , ("M-q", "Quit XMonad"   , safeSpawn "/home/lucius/.local/bin/xmonadctl" ["quit-wm"])
         ]
     ]
 
@@ -133,7 +133,7 @@ windowNavigation =
         ]
     , (suffix, dir) <- [("h", L), ("j", D), ("k", U), ("l", R)]
     ]
-    ++ [ ("M-<Tab>", "Window Switcher"                       , safeSpawnProg "rofi-window-switcher")
+    ++ [ ("M-<Tab>", "Window Switcher", safeSpawnProg "/home/lucius/.local/bin/rofi-window-switcher")
        , ("M-m"    , "Focus master window"                   , windows W.focusMaster)
        , ("M-S-m"  , "Swap master window with focused window", swapHybrid' False)
        , ("M-r"    , "Rotate other windows"                  , rotUnfocusedDown)
@@ -288,9 +288,9 @@ quickLaunch :: [(String, String, X ())]
 quickLaunch =
     [ ("M-<Return>"  , "Open terminal"          , asks (terminal . config) >>= safeSpawnProg)
         , ("M-S-<Return>", "Open terminal in pop-up", namedScratchpadAction myScratchPads "terminal")
-        , ("M-o"         , "App Launcher"           , safeSpawnProg "rofi-launcher")
+        , ("M-o", "App Launcher", safeSpawnProg "/home/lucius/.local/bin/rofi-launcher")
         , ("M-b"         , "Open browser"           , safeSpawnProg "firefox")
-        , ("M-f"         , "Open file manager"      , safeSpawnProg "nautilus")
+        , ("M-f"         , "Open file manager"      , safeSpawnProg "thunar")
         , ( "M-S-<Esc>"
           , "Open htop"
           , runInTerm
@@ -300,7 +300,7 @@ quickLaunch =
               "htop"
           )
         ]
-        ++ [ (key, desc, spawn $ "polybar-scrot -v viewnior " ++ flag)
+        ++ [ (key, desc, spawn $ "/home/lucius/.local/bin/polybar-scrot -v viewnior " ++ flag)
            | (key, desc, flag) <-
                [ ("M-<F13>"  , "Screenshot whole screen"             , "")
                , ("M-S-<F13>", "Screenshot selected region or window", "-s")

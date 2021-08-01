@@ -46,11 +46,12 @@ import           XMonad.Util.NamedScratchpad              ( namedScratchpadManag
 ----------------------------------------------------------------------------------------------------
 shiftWSClassses :: M.HashMap String WorkspaceId
 shiftWSClassses = M.fromList
-    [ ("Firefox"           , "www")
-    , ("Chromium-browser"  , "www")
-    , ("Hexchat"           , "chat")
-    , ("Gitter"            , "chat")
+    [ ("Chromium-browser"  , "www")
+    , ("Firefox"           , "www")
+    , ("firefox"           , "www")
     , ("Element"           , "chat")
+    , ("Gitter"            , "chat")
+    , ("Hexchat"           , "chat")
     , ("vlc"               , "media")
     , ("VirtualBox"        , "vbox")
     , ("VirtualBox Manager", "vbox")
@@ -58,18 +59,25 @@ shiftWSClassses = M.fromList
 
 centerFloatClasses :: S.HashSet String
 centerFloatClasses = S.fromList
-    [ "Alacritty Float"
+    [ "1Password"
+    , "Alacritty Float"
+    , "fcitx5-config-qt"
+    , "Font Manager"
+    , "Gxmessage"
+    , "Kvantum Manager"
+    , "Nitrogen"
     , "Nm-connection-editor"
     , "Pavucontrol"
-    , "Xmessage"
-    , "Gxmessage"
+    , "qt5ct"
     , "VirtualBox"
     , "VirtualBox Manager"
     , "Gimp"
     , "Gimp-2.10"
-    , "Nitrogen"
-    , "Viewnior"
+    , "Gwe"
     , "Sxiv"
+    , "Viewnior"
+    , "Xmessage"
+    , "Zeal"
     ]
 
 -- | Shift a window to a workspace when both of the followings are true:

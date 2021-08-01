@@ -33,7 +33,7 @@ myDefaultFontSize :: Float
 myDefaultFontSize = 12.0
 
 myUIFont :: Float -> String -> String
-myUIFont size weight = concat ["xft:Clear Sans-", show size, ":", weight]
+myUIFont size weight = concat ["xft:Arimo-", show size, ":", weight]
 
 myTerminalFont :: String -> String -> String
 myTerminalFont size weight = concat
