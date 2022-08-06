@@ -1,7 +1,7 @@
 ----------------------------------------------------------------------------------------------------
 -- |
 -- Module      : Main
--- Copyright   : (c) Lucius Hu, 2021
+-- Copyright   : (c) Lucius Hu, 2020-2022
 -- License     : BSD3
 -- Maintainer  : Lucius Hu <lebensterben@users.noreply.github.com>
 --
@@ -14,16 +14,20 @@ module Main where
 
 import           Custom.Hooks.HandleEventHook             ( myHandleEventHook )
 import           Custom.Hooks.LayoutHook                  ( myLayoutHook )
-import           Custom.Hooks.LogHook                     ( myLogHook )
 import           Custom.Hooks.ManageHook                  ( myManageHook )
 import           Custom.Hooks.StartupHook                 ( myStartupHook )
-import           Custom.Keymap                            ( addNamedKeys )
-import           Custom.Keymap.MajorKeymap                ( myMajorKeymap )
+import           Custom.Keymap                            ( myMajorKeymap )
 import           Custom.MouseBindings                     ( myMouseBindings )
-import           Custom.Util.DBus                         ( mkDbusClient )
-import           Custom.Util.Polybar                      ( polybar )
-import           Custom.Variables
-import           XMonad
+import           Custom.Util.Keymap                       ( addNamedKeys )
+import           Custom.Variables                         ( myBorderWidth
+                                                          , myWorkspaces
+                                                          )
+import           XMonad                                   ( (<+>)
+                                                          , Default(def)
+                                                          , XConfig(..)
+                                                          , mod4Mask
+                                                          , xmonad
+                                                          )
 import qualified XMonad.Actions.Navigation2D             as Nav2D
 import           XMonad.Actions.Navigation2D              ( Navigation2DConfig(..)
                                                           , centerNavigation
@@ -32,7 +36,11 @@ import           XMonad.Actions.Navigation2D              ( Navigation2DConfig(.
                                                           , sideNavigation
                                                           , withNavigation2DConfig
                                                           )
+import           XMonad.Actions.SwapPromote               ( masterHistoryHook )
 import           XMonad.Hooks.EwmhDesktops                ( ewmh )
+import           XMonad.Hooks.ManageDocks                 ( docks )
+import           XMonad.Hooks.TaffybarPagerHints          ( pagerHints )
+import           XMonad.Hooks.WorkspaceHistory            ( workspaceHistoryHook )
 
 ----------------------------------------------------------------------------------------------------
 -- Entry point
@@ -58,28 +66,28 @@ import           XMonad.Hooks.EwmhDesktops                ( ewmh )
 --         [@'XMonad.Hooks.EwmhDesktops.ewmhDesktopLogHook'@]: Notifies pagers and window lists of
 --         the current state of workspaces and windows.
 --
--- [@'windowNavigationHook'@]:
+-- [@'withNavigation2DConfig'@]:
 --
 --     [@'XMonad.Core.startupHook'@]: Modifies directional window navigation strategies.
 main :: IO ()
 main = do
-    dbus <- mkDbusClient
     xmonad
-        $ polybar dbus myStatusBarPP
         . addNamedKeys myMajorKeymap
         . withNavigation2DConfig Nav2D.def
               { defaultTiledNavigation = hybridOf sideNavigation centerNavigation
               , floatNavigation        = hybridOf lineNavigation centerNavigation
               }
+        . docks
         . ewmh
+        . pagerHints
         $ def { modMask         = mod4Mask
               , terminal        = "alacritty"
               , borderWidth     = myBorderWidth
               , workspaces      = myWorkspaces
-              , logHook         = myLogHook
+              , logHook         = workspaceHistoryHook <+> masterHistoryHook
               , layoutHook      = myLayoutHook
               , handleEventHook = myHandleEventHook
-              , manageHook      = myManageHook myWorkspaces
+              , manageHook      = myManageHook
               , startupHook     = myStartupHook
               , mouseBindings   = myMouseBindings
               }

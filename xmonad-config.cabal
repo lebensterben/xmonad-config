@@ -9,40 +9,34 @@ cabal-version: >=1.10
 executable xmonadcfg
   main-is:          ../xmonad.hs
   other-modules:
-    Custom.Configs.LayoutConfig
-    Custom.Configs.ShowWNameConfig
     Custom.Hooks.HandleEventHook
     Custom.Hooks.LayoutHook
-    Custom.Hooks.LogHook
     Custom.Hooks.ManageHook
     Custom.Hooks.StartupHook
     Custom.Keymap
-    Custom.Keymap.MajorKeymap
-    Custom.Layouts
     Custom.MouseBindings
-    Custom.Prompt
-    Custom.Util.Color
-    Custom.Util.DBus
-    Custom.Util.Polybar
+    Custom.Util.Keymap
+    Custom.Util.Prompt
+    Custom.Util.Workspaces
     Custom.Variables
-    Custom.Workspaces
 
   build-depends:
                     base
-                  , X11
                   , containers
                   , dbus
                   , directory
                   , filepath
                   , mtl
+                  , unix
                   , unordered-containers
                   , utf8-string
-                  , xmonad          >=0.15
-                  , xmonad-contrib  >=0.16
+                  , xmonad          >=0.17
+                  , xmonad-contrib  >=0.17
+                  , X11
 
-  hs-source-dirs:   lib
+  hs-source-dirs:   src
   default-language: Haskell2010
-  ghc-options:      -Wall -Werror -threaded -Wno-missing-signatures -haddock
+  ghc-options:      -Wall -Werror -threaded -Wno-missing-signatures
 
 executable xmonadctl
   main-is:          xmonadctl.hs
@@ -52,6 +46,4 @@ executable xmonadctl
 
   hs-source-dirs:   .
   default-language: Haskell2010
-  ghc-options:
-    -Wall -Werror -threaded -Wno-missing-signatures -Wno-unused-imports
-    -dynamic
+  ghc-options:      -Wall -Werror -threaded -Wno-missing-signatures -dynamic

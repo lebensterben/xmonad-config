@@ -2,43 +2,35 @@
 ----------------------------------------------------------------------------------------------------
 -- |
 -- Module      : Custom.Workspaces
--- Copyright   : (c) Lucius Hu, 2020
+-- Copyright   : (c) Lucius Hu, 2020-2022
 -- License     : BSD3
 -- Maintainer  : Lucius Hu <lebensterben@users.noreply.github.com>
 --
 -- Provides utility functions to interact with workspaces.
 ----------------------------------------------------------------------------------------------------
 
-module Custom.Workspaces
-    (
-      -- * Workspaces Filter
-      WSFilter(..)
-
-      -- * Workspaces Navigation
-
-      -- ** Navigation by Direction
-    , moveToWS
+module Custom.Util.Workspaces
+    ( moveToWS
     , shiftToWS
-
-      -- ** Navigation by Workspace ID
     , moveToWS'
     , shiftToWS'
-
-      -- * Screen Navigation
     , moveToScreen
     , shiftToScreen
-
-      -- * Util
+    , shrinkFrom
     , mergeToMaster
     , smartSink
     , smartSinkAll
     ) where
 
 import qualified Data.Map                                as M
-import           Data.Maybe                               ( isJust )
-import           XMonad                                   ( WorkspaceId
+import           Graphics.X11                             ( Window )
+import           XMonad                                   ( Resize(..)
+                                                          , WorkspaceId
                                                           , X
+                                                          , description
+                                                          , io
                                                           , sendMessage
+                                                          , spawn
                                                           , whenJust
                                                           , windows
                                                           , withFocused
@@ -53,33 +45,24 @@ import           XMonad.Actions.CycleWS                   ( WSType(WSIs)
                                                           , shiftTo
                                                           )
 import           XMonad.Actions.WithAll                   ( sinkAll )
-import           XMonad.Config.Prime                      ( Window )
-import           XMonad.Layout.SubLayouts                 ( GroupMsg(Merge, UnMergeAll) )
+import           XMonad.Layout.BinarySpacePartition       ( ResizeDirectional(..) )
+import           XMonad.Layout.ResizableTile              ( MirrorResize(..) )
+import           XMonad.Layout.SubLayouts                 ( GroupMsg(..) )
 import qualified XMonad.StackSet                         as W
-import           XMonad.StackSet                          ( floating )
-import           XMonad.Util.Types                        ( Direction1D(..) )
-
-----------------------------------------------------------------------------------------------------
--- Workspaces Filter
-----------------------------------------------------------------------------------------------------
-
--- | Defines what kind of workspaces should be filtered out.
-data WSFilter
-    = NonScratchPad         -- ^ Filter out \"NamedScratchPad\".
-    | NonEmptyScratchPad    -- ^ Filter out \"NamedScratchPad\" and empty workspaces.
-    | None                  -- ^ Keep all workspaces.
-
--- | Given a 'WSFilter', defines what type of workspace should be included in cycle.
-filterWS :: WSFilter -> WSType
-filterWS fil = case fil of
-    None               -> WSIs (return (const True))
-    NonScratchPad      -> WSIs (return (\ws -> W.tag ws /= "NSP"))
-    NonEmptyScratchPad -> WSIs (return (\ws -> isJust (W.stack ws) && W.tag ws /= "NSP"))
+import           XMonad.StackSet                          ( current
+                                                          , floating
+                                                          , layout
+                                                          , workspace
+                                                          )
+import           XMonad.Util.Types                        ( Direction1D(..)
+                                                          , Direction2D(..)
+                                                          )
 
 ----------------------------------------------------------------------------------------------------
 -- Workspaces Navigation
 ----------------------------------------------------------------------------------------------------
 
+-- | Convert numerical integers to strings as oridinal numbers.
 toOrdinal :: Int -> String
 toOrdinal i = case last i' of
     '1' -> i' ++ "st"
@@ -88,12 +71,18 @@ toOrdinal i = case last i' of
     _   -> i' ++ "th"
     where i' = show i
 
+-- | Human readable descrption of 'Direction1D'.
+descDir1D :: Direction1D -> String
+descDir1D = \case
+    Prev -> "last"
+    Next -> "next"
+
 -- | View the workspace in the given direction with a given filter.
 moveToWS :: [(String, Direction1D)] -- ^ Lists of keys-directions pairs, e.g.
                                     --   @[("h", L), ("j", D)]@
-         -> WSFilter                -- ^ Filters for candidate workspaces.
          -> [(String, String, X ())]
-moveToWS bindings fil = [ (key, show dir, moveTo dir $ filterWS fil) | (key, dir) <- bindings ]
+moveToWS bindings = [ (key, descDir1D dir, moveTo dir wsFilter) | (key, dir) <- bindings ]
+    where wsFilter = WSIs (return (\ws -> W.tag ws /= "NSP"))
 
 -- | Assign \"Prefix-[1..9]\" keys for switching to i-th workspace.
 moveToWS' :: [WorkspaceId] -- ^ Workspaces used in current config
@@ -107,11 +96,10 @@ moveToWS' wss =
 -- the window under focus.
 shiftToWS :: [(String, Direction1D)] -- ^ Lists of keys-directions pairs, e.g.
                                      --   @[("h", L), ("j", D)]@
-          -> WSFilter                -- ^ Filters for candidate workspaces.
           -> [(String, String, X ())]
-shiftToWS bindings fil =
-    [ (key, show dir, shiftTo dir wsFilter >> moveTo dir wsFilter) | (key, dir) <- bindings ]
-    where wsFilter = filterWS fil
+shiftToWS bindings =
+    [ (key, descDir1D dir, shiftTo dir wsFilter >> moveTo dir wsFilter) | (key, dir) <- bindings ]
+    where wsFilter = WSIs (return (\ws -> W.tag ws /= "NSP"))
 
 -- | Assign \"Prefix-[1..9]\" keys for shifting focused window and follow it to i-th workspace.
 shiftToWS' :: [WorkspaceId] -- ^ Workspaces used in current config
@@ -130,7 +118,9 @@ moveToScreen :: [(String, Direction1D)] -- ^ Lists of keys-directions pairs, e.g
                                         --   @[("h", L), ("j", D)]@
              -> [(String, String, X ())]
 moveToScreen bindings =
-    [ (key, show dir, if dir == Prev then prevScreen else nextScreen) | (key, dir) <- bindings ]
+    [ (key, descDir1D dir, if dir == Prev then prevScreen else nextScreen)
+    | (key, dir) <- bindings
+    ]
 
 -- | Move the focused window to the specified direction and keep the window under focus.
 shiftToScreen :: [(String, Direction1D)] -- ^ Lists of keys-directions pairs, e.g.
@@ -145,9 +135,30 @@ shiftToScreen bindings =
     ]
 
 ----------------------------------------------------------------------------------------------------
+-- Window Resizing
+----------------------------------------------------------------------------------------------------
+
+-- | Resize windows by shrinking windows on the specified direction.
+shrinkFrom :: Direction2D -> X ()
+shrinkFrom dir = withWindowSet $ \ws -> case description . layout . workspace $ current ws of
+    "Binary" -> sendMessage $ case dir of
+      -- These looks arbitrary, but not. See usage of "XMonad.Layout.BinarySpacePartition".
+        L -> ExpandTowards L
+        R -> ShrinkFrom L
+        D -> ShrinkFrom U
+        U -> ExpandTowards U
+    "Tall" -> case dir of
+        L -> sendMessage Shrink
+        R -> sendMessage Expand
+        D -> sendMessage MirrorShrink
+        U -> sendMessage MirrorExpand
+    l -> io $ spawn $ "dunstify '" ++ l ++ " layout does not support resizing.'"
+
+----------------------------------------------------------------------------------------------------
 -- Util
 ----------------------------------------------------------------------------------------------------
 
+-- | Returns the master window of current workspace, if there's any.
 getMaster :: X (Maybe Window)
 getMaster = withWindowSet $ \ws -> case W.index ws of
     []      -> return Nothing
@@ -157,7 +168,10 @@ getMaster = withWindowSet $ \ws -> case W.index ws of
 mergeToMaster :: X ()
 mergeToMaster = withFocused mergeToMaster'
 
-mergeToMaster' :: Window -> X ()
+-- | Merge the given window to master window of current workspace.
+-- Do nothing if there's no master window.
+mergeToMaster' :: Window -- ^ Window to be merged.
+               -> X ()
 mergeToMaster' focused = getMaster >>= \case
     Just master | master /= focused -> sendMessage $ Merge focused master
     _                               -> return ()
@@ -167,9 +181,12 @@ mergeToMaster' focused = getMaster >>= \case
 -- Otherwise, try to unmerge the window.
 smartSink :: X ()
 smartSink = withWindowSet $ \ws -> whenJust (W.peek ws) $ \focused ->
-    if M.member focused (floating ws) then windows $ W.sink focused else mergeToMaster' focused
+    if M.member focused (floating ws)
+        then windows $ W.sink focused
+        else sendMessage $ UnMerge focused
 
 -- | Unfloat or unmerge all windows in current workspace, if any.
+--
 -- When current layout is floating, unfloat all windows.
 -- Otherwise, try to unmerge all windows.
 smartSinkAll :: X ()

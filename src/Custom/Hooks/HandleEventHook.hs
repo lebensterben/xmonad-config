@@ -1,18 +1,14 @@
 ----------------------------------------------------------------------------------------------------
 -- |
 -- Module      : Custom.Hooks.HandleEventHook
--- Copyright   : (c) Lucius Hu, 2020
+-- Copyright   : (c) Lucius Hu, 2020-2022
 -- License     : BSD3
 -- Maintainer  : Lucius Hu <lebensterben@users.noreply.github.com>
 --
 -- Provides interfaces to interact with \"xmonadctl\" CLI utility.
 ----------------------------------------------------------------------------------------------------
 
-module Custom.Hooks.HandleEventHook
-    (
-    -- * Handle Event Hook
-      myHandleEventHook
-    ) where
+module Custom.Hooks.HandleEventHook (myHandleEventHook) where
 
 import           Data.Monoid                              ( All )
 import qualified Graphics.X11.Xlib.Extras                as X11
@@ -20,7 +16,6 @@ import           XMonad                                   ( (<+>)
                                                           , X
                                                           , io
                                                           )
-import           XMonad.Hooks.EwmhDesktops                ( fullscreenEventHook )
 import           XMonad.Hooks.ServerMode                  ( serverModeEventHook
                                                           , serverModeEventHookCmd
                                                           , serverModeEventHookF
@@ -42,4 +37,3 @@ myHandleEventHook =
         <+> serverModeEventHook
         <+> serverModeEventHookF "XMONAD_PRINT" (io . putStrLn)
         <+> hintsEventHook
-        <+> fullscreenEventHook

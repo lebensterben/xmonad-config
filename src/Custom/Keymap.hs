@@ -2,47 +2,47 @@
 ----------------------------------------------------------------------------------------------------
 -- |
 -- Module      : Custom.Keymap.MajorKeymap
--- Copyright   : (c) Lucius Hu, 2020
+-- Copyright   : (c) Lucius Hu, 2020-2022
 -- License     : BSD3
 -- Maintainer  : Lucius Hu <lebensterben@users.noreply.github.com>
 --
--- Defines the major (global) keymap.
+-- Defines the keymap.
 ----------------------------------------------------------------------------------------------------
 
-module Custom.Keymap.MajorKeymap (myMajorKeymap) where
+module Custom.Keymap (myMajorKeymap) where
 
-import           Custom.Keymap                            ( mkNamedKeymap' )
-import           Custom.Prompt                            ( searchWithInput
+import           Custom.Util.Keymap                       ( mkNamedKeymap' )
+import           Custom.Util.Prompt                       ( searchWithInput
                                                           , searchWithSelection
-                                                          , spawnPrompt
                                                           )
-import           Custom.Variables                         ( myScratchPads )
-import           Custom.Workspaces                        ( WSFilter(..)
-                                                          , mergeToMaster
+import           Custom.Util.Workspaces                   ( mergeToMaster
                                                           , moveToScreen
                                                           , moveToWS
                                                           , moveToWS'
                                                           , shiftToScreen
                                                           , shiftToWS
                                                           , shiftToWS'
+                                                          , shrinkFrom
                                                           , smartSink
                                                           , smartSinkAll
                                                           )
+import           Custom.Variables                         ( myScratchPads )
 import           Data.List                                ( foldl' )
-import           XMonad                                   ( ChangeLayout(NextLayout)
-                                                          , IncMasterN(IncMasterN)
+import           System.Exit                              ( exitSuccess )
+import           XMonad                                   ( ChangeLayout(..)
+                                                          , IncMasterN(..)
                                                           , KeyMask
                                                           , KeySym
-                                                          , Resize(..)
                                                           , WorkspaceId
                                                           , X
-                                                          , XConf(config)
-                                                          , XConfig(terminal, workspaces)
+                                                          , XConf(..)
+                                                          , XConfig(..)
                                                           , asks
+                                                          , io
+                                                          , restart
                                                           , sendMessage
-                                                          , spawn
-                                                          , windows
                                                           , withFocused
+                                                          , withUnfocused
                                                           )
 import           XMonad.Actions.CopyWindow                ( kill1 )
 import           XMonad.Actions.CycleWindows              ( rotUnfocusedDown )
@@ -51,14 +51,17 @@ import           XMonad.Actions.Navigation2D              ( windowGo
                                                           )
 import           XMonad.Actions.RotSlaves                 ( rotAllDown )
 import           XMonad.Actions.SwapPromote               ( swapHybrid' )
-import           XMonad.Actions.WithAll                   ( killAll )
+import           XMonad.Actions.WithAll                   ( killOthers )
 import           XMonad.Hooks.ManageDocks                 ( ToggleStruts(..) )
+import           XMonad.Layout.Hidden                     ( hideWindow
+                                                          , popNewestHiddenWindow
+                                                          , popOldestHiddenWindow
+                                                          )
 import           XMonad.Layout.LimitWindows               ( decreaseLimit
                                                           , increaseLimit
                                                           )
 import qualified XMonad.Layout.MultiToggle               as MT
 import           XMonad.Layout.MultiToggle.Instances      ( StdTransformers(..) )
-import           XMonad.Layout.ResizableTile              ( MirrorResize(..) )
 import           XMonad.Layout.Spacing                    ( decScreenSpacing
                                                           , decWindowSpacing
                                                           , incScreenSpacing
@@ -85,7 +88,8 @@ import           XMonad.Util.Types                        ( Direction1D(..)
 ----------------------------------------------------------------------------------------------------
 
 -- | A tree of key-sequence-to-named-actions pairs.
-myMajorKeymap :: XConfig l -> [((KeyMask, KeySym), NamedAction)]
+myMajorKeymap :: XConfig l -- ^ A 'XConfig' used to acquire modifier key.
+              -> [((KeyMask, KeySym), NamedAction)]
 myMajorKeymap conf =
     foldl' (^++^) mempty
         . map (mkNamedKeymap' conf)
@@ -109,19 +113,16 @@ xmonadManagement :: [(String, String, X ())]
 xmonadManagement =
     [ ("M-x " ++ suffix, desc, action)
     | (suffix, desc, action) <-
-        [ ("M-r", "Restart XMonad", safeSpawn "/home/lucius/.local/bin/xmonadctl" ["restart-wm"])
-        , ("M-q", "Quit XMonad"   , safeSpawn "/home/lucius/.local/bin/xmonadctl" ["quit-wm"])
-        ]
+        [("M-r", "Restart XMonad", restart "xmonad" True), ("M-q", "Quit XMonad", io exitSuccess)]
     ]
 
 -- | Window Navigation Keys
 --
 -- [@M-\<h, j, k, l\>@]: Move focus to the window in that direction.
 -- [@M-S-\<h, j, k, l\>@]: Swap focused window with another window in that direction.
--- [@M-m@]: Move focus to master window
--- [@M-S-m@]: Swap focused window with master window
--- [@M-r@]: Rotate all windows except master
--- [@M-S-r@]: Rotate all windows
+-- [@M-p@]: Promote focused window to master.
+-- [@M-c@]: Cycle all windows except master.
+-- [@M-S-c@]: Cycle all windows.
 -- [@M-\<Tab\>@]: Window switcher. Type @\<Return>@ to switch to the window.
 -- Or type @S-\<Return\>@ to bring the window to current workspace.
 windowNavigation :: [(String, String, X ())]
@@ -133,11 +134,10 @@ windowNavigation =
         ]
     , (suffix, dir) <- [("h", L), ("j", D), ("k", U), ("l", R)]
     ]
-    ++ [ ("M-<Tab>", "Window Switcher", safeSpawnProg "/home/lucius/.local/bin/rofi-window-switcher")
-       , ("M-m"    , "Focus master window"                   , windows W.focusMaster)
-       , ("M-S-m"  , "Swap master window with focused window", swapHybrid' False)
-       , ("M-r"    , "Rotate other windows"                  , rotUnfocusedDown)
-       , ("M-S-r"  , "Rotate all window"                     , rotAllDown)
+    ++ [ ("M-<Tab>", "Window Switcher", safeSpawnProg "rofi-window-switcher")
+       , ("M-p"    , "Promote focused window to master window", swapHybrid' False)
+       , ("M-c"    , "Cycle non-master windows"               , rotUnfocusedDown)
+       , ("M-S-c"  , "Cycle all window"                       , rotAllDown)
        ]
   where
     descDir = \case
@@ -151,11 +151,16 @@ windowNavigation =
 -- [@M-M1-\<h, j, k, l>@]: Resizing by shrinking windows on the specified direction w.r.t
 -- current focus.
 windowResize :: [(String, String, X ())]
-windowResize = map f [("h", L, Shrink), ("l", R, Expand)]
-    ++ map f [("j", D, MirrorShrink), ("k", U, MirrorExpand)]
+windowResize =
+    [ ("M-M1-" ++ suffix, "Shrink window on the " ++ descDir dir, shrinkFrom dir)
+    | (suffix, dir) <- [("h", L), ("l", R), ("j", D), ("k", U)]
+    ]
   where
-    f (suffix, dir, action) =
-        ("M-M1-" ++ suffix, "Shrink window on the " ++ show dir, sendMessage action)
+    descDir = \case
+        L -> "Left"
+        D -> "Bottom"
+        U -> "Top"
+        R -> "Right"
 
 -- NOTE: left here
 -- | Workspace Navigation Keys
@@ -166,12 +171,13 @@ windowResize = map f [("h", L, Shrink), ("l", R, Expand)]
 -- [@M-S-C-\<h, l>@]: Move focused window to the screen in that direction.
 -- [@M-\<1..9>@]: Jump to i-th workspace.
 -- [@M-S-\<1..9>@]: Bring focused window to i-th workspace.
-workspaceNavigation :: [WorkspaceId] -> [(String, String, X ())]
+workspaceNavigation :: [WorkspaceId] -- ^ A list of 'WorkspaceId'.
+                    -> [(String, String, X ())]
 workspaceNavigation wss =
     [ (prefix ++ suffix, descPre ++ " " ++ desc ++ " " ++ descSuf, action)
     | (prefix, descPre, descSuf, source) <-
-        [ ("M-C-"  , "Go to"                  , "Workspace", moveToWS d1WSmapping NonScratchPad)
-        , ("M-S-C-", "Shift focused window to", "Workspace", shiftToWS d1WSmapping NonScratchPad)
+        [ ("M-C-"  , "Go to"                  , "Workspace", moveToWS d1WSmapping)
+        , ("M-S-C-", "Shift focused window to", "Workspace", shiftToWS d1WSmapping)
         , ("M-C-"  , "Go to"                  , "Screen"   , moveToScreen d1SCmapping)
         , ("M-S-C-", "Shift focused window to", "Screen"   , shiftToScreen d1SCmapping)
         , ("M-"    , "Go to"                  , "Workspace", moveToWS' wss)
@@ -183,25 +189,31 @@ workspaceNavigation wss =
     d1WSmapping = [("j", Next), ("k", Prev)]
     d1SCmapping = [("h", Prev), ("l", Next)]
 
--- | Kill Windows
+-- | Kill/Hide Windows
 --
 -- [@M-q@]: Kill focused window.
 -- [@M-S-q@]: Kill all windows on current workspace.
 killWindow :: [(String, String, X ())]
 killWindow =
-    [("M-q", "Kill focused window", kill1), ("M-S-q", "Kill all windows on current WS", killAll)]
+    [ ("M-q"  , "Kill focused window", kill1)
+    , ("M-S-q", "Kill all windows except focuesd window on current WS", killOthers)
+    ]
 
 -- | Layout Commands
 --
 -- [@M-`@]: Switch to next layout.
 -- [@M-S-`@]: Toggle float layout.
--- [@M-C-m@]: Merge focused window with master window.
--- [@M-C-S-m@]: Merge all windows.
+-- [@M-d@]: Demote (hide) focused window.
+-- [@M-S-d@]: Demote (hide) other windows.
+-- [@M-r@]: Restore newest hidden window.
+-- [@M-S-r@]: Restore oldest hidden window.
+-- [@M-m@]: Merge focused window with master window.
+-- [@M-S-m@]: Merge all windows.
 -- [@M-\[@]: Previous tab.
 -- [@M-\]@]: Next tab
--- [@M-s@]: Sink focused window if it's floating, otherwise unmerge it if it's @Tabbed@.
--- [@M-S-s]: Unsink all floating windows in current workspace if there's any, otherwise
--- unmerge all windows in @Tabbed@ layout in current workspace.
+-- [@M-s@]: Sink focused window if floating, otherwise split it if it's tabbed.
+-- [@M-S-s]: Sink all floating windows in current workspace if there's any, otherwise
+-- split all windows in @Tabbed@ layout in current workspace.
 -- [@M-\<F11\>@]: Toggle fullscreen layout.
 -- [@M-S-\<F11\>@]: Toggle status bar.
 -- [@M-\<KP_Add\/KP_Subtract\>@]: Increase\/Decrease number of master windows.
@@ -210,31 +222,87 @@ killWindow =
 -- [@M-S-\<-, =\>@]: Decrease\/Increase screen gap.
 layoutCmds :: [(String, String, X ())]
 layoutCmds =
-    [ ("M-`"    , "Cycle layouts"            , sendMessage NextLayout)
-    , ("M-S-`"  , "Toggles 'floats' layout"  , sendMessage (T.Toggle "floats"))
-    , ("M-C-m"  , "Merge focused with master", mergeToMaster)
-    , ("M-C-S-m", "Merge all"                , withFocused (sendMessage . MergeAll))
-    , ("M-["    , "Previous tab"             , onGroup W.focusUp')
-    , ("M-]"    , "Next tab"                 , onGroup W.focusDown')
-    , ("M-s"    , "Sink focused if floating, otherwise unmerge it", smartSink)
-    , ("M-S-s", "Sink all floating windows if any, otherwise unmerge all", smartSinkAll)
-    , ("M-<F11>", "Toggles fullscreen layout", sendMessage (MT.Toggle NBFULL))
-    , ( "M-S-<F11>"
-      , "Toggles status bar"
-      , safeSpawn "polybar-msg" ["cmd", "toggle"] >> sendMessage ToggleStruts
-      )
-    , ("M-<KP_Add>"       , "More master windows"  , sendMessage (IncMasterN 1))
-    , ("M-<KP_Subtract>"  , "Fewer master windows" , sendMessage (IncMasterN (-1)))
-    , ("M-S-<KP_Add>"     , "More visible windows" , increaseLimit)
-    , ("M-S-<KP_Subtract>", "Fewer visible windows", decreaseLimit)
-    , ("M--"              , "Increase window gap"  , decWindowSpacing 4)
-    , ("M-="              , "Decrease window gap"  , incWindowSpacing 4)
-    , ("M-S--"            , "Increase screen gap"  , decScreenSpacing 4)
-    , ("M-S-="            , "Decrease screen gap"  , incScreenSpacing 4)
+    [ ("M-`"              , "Cycle layouts"               , sendMessage NextLayout)
+    , ("M-S-`"            , "Toggles 'floats' layout"     , sendMessage (T.Toggle "Float"))
+    , ("M-d"              , "Demote (hide) focused"       , withFocused hideWindow)
+    , ("M-S-d"            , "Demote (hide) other window"  , withUnfocused hideWindow)
+    , ("M-r"              , "Recover newest hidden window", popNewestHiddenWindow)
+    , ("M-S-r"            , "Recover oldest hidden window", popOldestHiddenWindow)
+    , ("M-m"              , "Merge focused with master"   , mergeToMaster)
+    , ("M-S-m"            , "Merge all"                   , withFocused (sendMessage . MergeAll))
+    , ("M-s"              , "Sink/Split focused"          , smartSink)
+    , ("M-S-s"            , "Sink/Split all"              , smartSinkAll)
+    , ("M-["              , "Previous tab"                , onGroup W.focusUp')
+    , ("M-]"              , "Next tab"                    , onGroup W.focusDown')
+    , ("M-<F11>"          , "Toggles fullscreen layout"   , sendMessage (MT.Toggle NBFULL))
+    , ("M-S-<F11>"        , "Toggles status bar"          , sendMessage ToggleStruts)
+    , ("M-<KP_Add>"       , "More master windows"         , sendMessage (IncMasterN 1))
+    , ("M-<KP_Subtract>"  , "Fewer master windows"        , sendMessage (IncMasterN (-1)))
+    , ("M-S-<KP_Add>"     , "More visible windows"        , increaseLimit)
+    , ("M-S-<KP_Subtract>", "Fewer visible windows"       , decreaseLimit)
+    , ("M--"              , "Increase window gap"         , decWindowSpacing 4)
+    , ("M-="              , "Decrease window gap"         , incWindowSpacing 4)
+    , ("M-S--"            , "Increase screen gap"         , decScreenSpacing 4)
+    , ("M-S-="            , "Decrease screen gap"         , incScreenSpacing 4)
+    ]
+
+-- NOTE: rofi-surfraw DISPLAYNAME ENGINE [OPTION ..] [QUERY ..]
+-- TODO: add Github etc
+-- | A list of searcher.
+--
+-- Each entry is composed of a key, a name, and a list of args:
+-- * Key is the suffix key used in a key binding.
+-- * Name is the name of the search provider.
+-- * Args are arguments passed to \"rofi-surfraw\".
+--
+-- [@a@] : Arch Linux Wiki.
+-- [@S-a@] : Arch Linux Package.
+-- [@M1-a@] : Arch User Repository.
+-- [@b@] : Gutenburg.
+-- [@d@] : DuckDuckGo.
+-- [@g@] : Google.
+-- [@S-g@] : GitHub.
+-- [@h@] : Hoogle.
+-- [@i@] : Google Image.
+-- [@m@] : Google Maps.
+-- [@n@] : nLab.
+-- [@s@] : Google Scholar.
+-- [@t@] : Thesaurus.
+-- [@u@] : Urban dictionary.
+-- [@w@] : Wikipedia.
+-- [@S-w@] : Wiktionary.
+-- [@y@] : Youtube.
+-- [@z@] : Wikipedia (zh).
+-- [@S-z@] : Wiktionary (zh).
+-- [@\$@] : Amazon.
+-- [@\/@] : Choose a search engine.
+searchProviders :: [(String, String, [String])]
+searchProviders =
+    [ ("a"   , "Arch Linux Wiki"          , ["archwiki"])
+    , ("S-a" , "Arch Linux Package"       , ["archpkg"])
+    , ("M1-a", "AUR"                      , ["aur"])
+    , ("b"   , "Gutenburg (Book)"         , ["Gutenberg"])
+    , ("d"   , "DuckDuckGo"               , ["duckduckgo"])
+    , ("e"   , "Etymology"                , ["Etym"])
+    , ("g"   , ""                         , ["google"])
+    , ("S-g" , "Github"                   , ["github"])
+    , ("h"   , ""                         , ["hoogle"])
+    , ("i"   , "Google Image"             , ["google", "-i"])
+    , ("m"   , "Google Maps"              , ["google", "-m"])
+    , ("n"   , "nLab (Math, Physics, Philosophy)", ["nlab"])
+    , ("s"   , "Google Scholar"           , ["scholar"])
+    , ("t"   , ""                         , ["Thesaurus"])
+    , ("u"   , "Urban Dictionary"         , ["urban"])
+    , ("w"   , ""                         , ["wikipedia"])
+    , ("S-w" , ""                         , ["wiktionary"])
+    , ("y"   , ""                         , ["youtube"])
+    , ("z"   , "Wikipedia (zh)"           , ["wikipedia", "-l=zh"])
+    , ("S-z" , "Wiktionary (zh)"          , ["wiktionary", "-l=zh"])
+    , ("$"   , ""                         , ["amazon"])
+    , ("/"   , "specified search provider", [""])
     ]
 
 -- | Spawning Prompts
---
 --
 -- === Search prompt.
 -- [@M-/@]: Search prompt, followed by one of the following key.
@@ -269,41 +337,49 @@ promptCommands :: [(String, String, X ())]
 promptCommands =
     [ (prefix ++ " " ++ suffix, desc, action)
     | (prefix, source)       <-
-        [("M-<Space>", spawnPrompt), ("M-/", searchWithInput), ("M-S-/", searchWithSelection)]
+        [ ("M-<Space>", spawnPrompt)
+        , ("M-/"      , searchWithInput searchProviders)
+        , ("M-S-/"    , searchWithSelection searchProviders)
+        ]
     , (suffix, desc, action) <- source
     ]
+  where
+    spawnPrompt =
+        [ ("m", "Manpage Prompt"       , safeSpawnProg "rofi-man")
+        , ("p", "Password-store Prompt", safeSpawnProg "rofi-pass")
+        , ("=", "Qalc Prompt"          , safeSpawnProg "rofi-qalc")
+        ]
+
 
 -- TODO: Still expanding
 -- | Quick Launch
 --
 -- [@M-\<Return\>@]: Open terminal.
 -- [@M-S-\<Return\>@]: Open terminal pop-up.
--- [@M-o@]: App Launcher.
--- [@M-b@]: Open browser.
--- [@M-f@]: Open file manager.
+-- [@M-\<Esc\>@]: Open Zeal pop-up.
 -- [@M-S-\<Esc\>@]: Open Htop.
+-- [@M-o@]: App Launcher.
+-- [@M-f@]: Open file manager.
+-- [@M-b@]: Open browser.
 -- [@M-\<F13\>@]: Screenshot whole screen.
 -- [@M-S-\<F13\>@]: Screenshot selected region or window.
 quickLaunch :: [(String, String, X ())]
 quickLaunch =
     [ ("M-<Return>"  , "Open terminal"          , asks (terminal . config) >>= safeSpawnProg)
         , ("M-S-<Return>", "Open terminal in pop-up", namedScratchpadAction myScratchPads "terminal")
-        , ("M-o", "App Launcher", safeSpawnProg "/home/lucius/.local/bin/rofi-launcher")
-        , ("M-b"         , "Open browser"           , safeSpawnProg "firefox")
-        , ("M-f"         , "Open file manager"      , safeSpawnProg "thunar")
+        , ("M-<Esc>", "Open quickDocs pop-up", namedScratchpadAction myScratchPads "quickDocs")
         , ( "M-S-<Esc>"
           , "Open htop"
-          , runInTerm
-              "--class 'Alacritty Float','Alacritty Float' \
-                   \-o window.dimensions.columns=200 \
-                   \-o window.dimensions.lines=40"
-              "htop"
+          , runInTerm "--class AlacrittyFloat -o window.dimensions.{columns=200,lines=40}" "htop"
           )
+        , ("M-o", "App Launcher"     , safeSpawnProg "rofi-launcher")
+        , ("M-b", "Open browser"     , safeSpawnProg "firefox")
+        , ("M-f", "Open file manager", safeSpawnProg "nautilus")
         ]
-        ++ [ (key, desc, spawn $ "/home/lucius/.local/bin/polybar-scrot -v viewnior " ++ flag)
+        ++ [ (key, desc, safeSpawn "polybar-scrot" ["-v", "viewnior", flag])
            | (key, desc, flag) <-
-               [ ("M-<F13>"  , "Screenshot whole screen"             , "")
-               , ("M-S-<F13>", "Screenshot selected region or window", "-s")
+               [ ("M-<XF86Tools>"  , "Screenshot whole screen"             , "")
+               , ("M-S-<XF86Tools>", "Screenshot selected region or window", "-s")
                ]
            ]
 
@@ -320,16 +396,16 @@ emacsCmds :: [(String, String, X ())]
 emacsCmds =
     [ ("M-e " ++ suffix, desc, safeSpawn "emacsclient" args')
     | (suffix, desc, args) <-
-        [ ("e", "Open Emacs"        , [])
-        , ("b", "List Emacs buffers", ["(ibuffer)"])
-        , ("d", "Dired"             , ["(dired nil)"])
-        , ("i", "Emacs IRC"         , ["(erc)"])
-        , ("m", "mu4e"              , ["(mu4e)"])
-        , ("n", "Elfeed RSS"        , ["(elfeed)"])
+        [ ("e", "Open Emacs"        , "")
+        , ("b", "List Emacs buffers", "(ibuffer)")
+        , ("d", "Dired"             , "(dired nil)")
+        , ("i", "Emacs IRC"         , "(erc)")
+        , ("m", "mu4e"              , "(mu4e)")
+        , ("n", "Elfeed RSS"        , "(elfeed)")
         ]
     , let args' = ["-c", "-a=emacs"] ++ case args of
               [] -> []
-              _  -> "--eval" : args
+              _  -> ["--eval", args]
     ]
 
 -- TODO: Add Play Next Prev keys
@@ -340,57 +416,20 @@ emacsCmds =
 -- [@\<XF86AudioMute\>@]: Toggle volume.
 multiMediaKeys :: [(String, String, X ())]
 multiMediaKeys =
-    [ (key, desc, spawn $ "polybar-msg action '#pulseaudio." ++ message ++ "'")
-    | (key, desc, message) <-
-        [ ("<XF86AudioLowerVolume>", "Lower volume by 5%", "dec")
-        , ("<XF86AudioRaiseVolume>", "Raise volume by 5%", "inc")
-        , ("<XF86AudioMute>"       , "Toggle volume"     , "toggle")
+    [ ( "<XF86AudioLowerVolume>"
+      , "Lower volume by 5%"
+      , safeSpawn "amixer" ["set", "Master", "5%-", "unmute"]
+      )
+        , ( "<XF86AudioRaiseVolume>"
+          , "Raise volume by 5%"
+          , safeSpawn "amixer" ["set", "Master", "5%+", "unmute"]
+          )
+        , ("<XF86AudioMute>", "Toggle audio mute", safeSpawn "amixer" ["set", "Master", "toggle"])
         ]
-    ]
-    ++ [ (key, desc, safeSpawn "mpc" [action])
-       | (key, desc, action) <-
-           [ ("<XF86AudioPrev>", "Toggle play/pause", "prev")
-           , ("<XF86AudioPlay>", "Toggle play/pause", "toggle")
-           , ("<XF86AudioNext>", "Toggle play/pause", "next")
+        ++ [ (key, desc, safeSpawn "mpc" [action])
+           | (key, desc, action) <-
+               [ ("<XF86AudioPrev>", "Toggle play/pause", "prev")
+               , ("<XF86AudioPlay>", "Toggle play/pause", "toggle")
+               , ("<XF86AudioNext>", "Toggle play/pause", "next")
+               ]
            ]
-       ]
-
-    -- FIXME: I don't use mocp
-        -- , ( "M-C-c"
-        --   , namedScratchpadAction myScratchPads "mocp"
-        --   )
-    -- Controls for mocp music player (SUPER-u followed by a key)
-        -- , ("M-u p", spawn "mocp --play")
-        -- , ("M-u l", spawn "mocp --next")
-        -- , ("M-u h", spawn "mocp --previous")
-        -- , ( "M-u <Space>"
-        --   , spawn "mocp --toggle-pause"
-        --   )
-
-    -- FIXME
-    --- My Applications (Super+Alt+Key)
-        -- , ("M-M1-a", spawn (myTerminal ++ ["ncpamixer"]))
-        -- , ("M-M1-b", spawn "surf www.youtube.com/c/DistroTube/")
-        -- , ("M-M1-e", spawn (myTerminal ++ "neomutt"))
-        -- , ("M-M1-f", spawn (myTerminal ++ "sh ./.config/vifm/scripts/vifmrun | bash"))
-        -- , ("M-M1-i", spawn (myTerminal ++ "irssi"))
-        -- , ("M-M1-j", spawn (myTerminal ++ "joplin"))
-        -- , ("M-M1-l", spawn (myTerminal ++ "lynx https://distrotube.com"))
-        -- , ("M-M1-m", spawn (myTerminal ++ "mocp"))
-        -- , ("M-M1-n", spawn (myTerminal ++ "newsboat"))
-        -- , ("M-M1-p", spawn (myTerminal ++ "pianobar"))
-        -- , ("M-M1-r", spawn (myTerminal ++ "rtv"))
-        -- , ("M-M1-t", spawn (myTerminal ++ ["toot curses"]))
-        -- , ("M-M1-w", spawn (myTerminal ++ ["wopr report.xml"]))
-        -- , ( "M-M1-y"
-          -- , spawn (myTerminal ++ " -e youtube-viewer")
-          -- )
-
-    -- Multimedia Keys
-        -- FIXME Bug prevents it from toggling correctly in 12.04.
-        -- , ("<XF86HomePage>"        , spawn "firefox")
-        -- , ("<XF86Search>", safeSpawn "firefox" ["https://www.google.com/"])
-        -- , ("<XF86Mail>", runOrRaise "geary" (resource =? "thunderbird"))
-        -- , ("<XF86Calculator>", runOrRaise "gcalctool" (resource =? "gcalctool"))
-        -- , ("<XF86Eject>"           , spawn "toggleeject")
-        -- , ("<Print>"               , spawn "scrotd 0")

@@ -1,21 +1,16 @@
 ----------------------------------------------------------------------------------------------------
 -- |
 -- Module      : Custom.Keymap
--- Copyright   : (c) Lucius Hu, 2020
+-- Copyright   : (c) Lucius Hu, 2020-2022
 -- License     : BSD3
 -- Maintainer  : Lucius Hu <lebensterben@users.noreply.github.com>
 --
--- Defines 'modKey', and provides common utilities for the managing keybindings.
+-- Provides common utilities for managing keybindings.
 ----------------------------------------------------------------------------------------------------
 
-module Custom.Keymap
-    (
-      -- * Utility function for adding global bindings
-      mkNamedKeymap'
-    , addNamedKeys
-    ) where
+module Custom.Util.Keymap (mkNamedKeymap', addNamedKeys) where
 
-import           Control.Exception                        ( SomeException(SomeException)
+import           Control.Exception                        ( SomeException(..)
                                                           , catch
                                                           )
 import           Control.Monad                            ( when )
@@ -34,16 +29,19 @@ import           Text.ParserCombinators.ReadP             ( (+++)
                                                           , satisfy
                                                           , string
                                                           )
-import           XMonad                                   ( KeyMask
+import           XMonad                                   ( Directories'(..)
+                                                          , KeyMask
                                                           , KeySym
                                                           , Layout
                                                           , X
+                                                          , XConf(..)
                                                           , XConfig
-                                                          , getXMonadDataDir
+                                                          , asks
                                                           , io
                                                           , modMask
                                                           , xK_F1
                                                           )
+import           XMonad.Hooks.DynamicLog                  ( wrap )
 import           XMonad.Util.EZConfig                     ( mkNamedKeymap )
 import           XMonad.Util.NamedActions                 ( NamedAction
                                                           , addDescrKeys'
@@ -56,22 +54,22 @@ import           XMonad.Util.Run                          ( safeSpawnProg )
 ----------------------------------------------------------------------------------------------------
 -- Utility function for installing global bindings
 ----------------------------------------------------------------------------------------------------
-addName' :: String -> X () -> NamedAction
-addName' desc = addName (padDescription desc)
-    where padDescription x = "<span><big>" ++ x ++ "</big></span>"
+-- | Similar to 'addName', but adding @Pango@ format tags.
+addName' :: String -- ^ Description.
+         -> X ()   -- ^ Action.
+         -> NamedAction
+addName' = addName . wrap "<span><big>" "</big></span>"
 
--- | Generates a named keybindings section with descriptions.
-mkNamedKeymap' :: XConfig l                -- ^ A 'XConfig' used to determine proper modifie
+-- | Similar to 'mkNamedKeymap' but using 'addName''.
+mkNamedKeymap' :: XConfig l                -- ^ A 'XConfig' used to determine proper modifier key.
                -> [(String, String, X ())] -- ^ A list of binding-description-action tripples.
-                                                 --   key.
                -> [((KeyMask, KeySym), NamedAction)]
 mkNamedKeymap' conf ks = mkNamedKeymap conf keymap
     where keymap = map (\(k, desc, x) -> (k, if null desc then noName x else addName' desc x)) ks
 
-
--- | Add keybindings with descriptions (without merging defaults).
+-- | Similar to 'addDescrKeys'', but using 'mkNamedKeymap''.
 addNamedKeys :: (XConfig Layout -> [((KeyMask, KeySym), NamedAction)])
-                -- ^ A list of binding-description-action tripples
+                          -- ^ A list of binding-description-action triples.
              -> XConfig l -- ^ The original 'XConfig' that is modified upon.
              -> XConfig l
 addNamedKeys keyList conf = addDescrKeys' ((modMask conf, xK_F1), showKeyBindings) keyList conf
@@ -80,24 +78,32 @@ addNamedKeys keyList conf = addDescrKeys' ((modMask conf, xK_F1), showKeyBinding
 -- Utility function for displaying global bindings
 ----------------------------------------------------------------------------------------------------
 -- | Display all available global key bindings.
-showKeyBindings :: [((KeyMask, KeySym), NamedAction)] -> NamedAction
+showKeyBindings :: [((KeyMask, KeySym), NamedAction)] -- ^ A list of binding-description-action triples.
+                -> NamedAction
 showKeyBindings x =
-    addName' "Show Keybindings" $ io $ regenerateKeyBindings (showKmSimple x) >> safeSpawnProg
-        "/home/lucius/.local/bin/rofi-xmonad-keys"
+    addName' "Show Keybindings" $ regenerateKeyBindings (showKmSimple x) >> safeSpawnProg
+        "rofi-xmonad-keys"
 
-regenerateKeyBindings :: [String] -> IO ()
+-- | Export key bindings to @/tmp/xmonad-keys@ when it satisfies one of the conditions:
+--
+-- * The @xmonad@ binary is newer than the export file.
+-- * The export file doesn't exist.
+regenerateKeyBindings :: [String] -- ^ Description of keyboard bindings.
+                      -> X ()
 regenerateKeyBindings bindings = do
-    datadir <- getXMonadDataDir
+    datadir <- asks (dataDir . directories)
     let bin  = (</>) datadir $ "xmonad-" ++ arch ++ "-" ++ os
         keys = "/tmp/xmonad-keys"
-    binT  <- getModTime bin
-    keysT <- getModTime keys
+    binT  <- io $ getModTime bin
+    keysT <- io $ getModTime keys
     let shouldRegenerate = binT > keysT
-    when shouldRegenerate $ writeFile keys $ processBinding bindings
+    io $ when shouldRegenerate $ writeFile keys $ processBinding bindings
   where
     getModTime f = catch (Just <$> getModificationTime f) (\(SomeException _) -> return Nothing)
     processBinding = unlines . map (fst . last . readP_to_S namedKeySequences)
 
+-- | Translate key bindings to human readable forms.
+-- Specifically, it adds @Pango@ text formats and translates modifier keys.
 namedKeySequences :: ReadP String
 namedKeySequences = do
     keys <- many1 keySequence
