@@ -70,7 +70,7 @@ import           XMonad.Hooks.WorkspaceHistory            ( workspaceHistoryHook
 --
 --     [@'XMonad.Core.startupHook'@]: Modifies directional window navigation strategies.
 main :: IO ()
-main = do
+main =
     xmonad
         . addNamedKeys myMajorKeymap
         . withNavigation2DConfig Nav2D.def
