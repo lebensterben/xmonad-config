@@ -3,7 +3,7 @@ cradle:
     - path: "./xmonad.hs"
       component: "xmonad-config:exe:xmonadcfg"
 
-    - path: "./lib/"
+    - path: "./src/"
       component: "xmonad-config:exe:xmonadcfg"
 
     - path: "./xmonadctl.hs"
@@ -12,7 +12,7 @@ cradle:
     - path: "./xmonad.hs"
       component: "xmonad-config:exe:xmonadcfg"
 
-    - path: "./lib/"
+    - path: "./src/"
       component: "xmonad-config:exe:xmonadcfg"
 
     - path: "./xmonadctl.hs"
