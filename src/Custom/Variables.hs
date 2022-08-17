@@ -177,7 +177,9 @@ centerFloatClasses = S.fromList
     , "Pick-colour-picker"
     , "Qalculate-gtk"
     , "qt5ct"
+    , "Solaar"
     , "Steam"
+    , "Variety"
     , "Viewnior"
     , "Xmessage"
     ]

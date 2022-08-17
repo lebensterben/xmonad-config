@@ -354,8 +354,8 @@ promptCommands =
 -- TODO: Still expanding
 -- | Quick Launch
 --
--- [@M-\<Return\>@]: Open terminal.
--- [@M-S-\<Return\>@]: Open terminal pop-up.
+-- [@M-\<Return\>@]: Open terminal pop-up.
+-- [@M-S-\<Return\>@]: Open terminal.
 -- [@M-\<Esc\>@]: Open Zeal pop-up.
 -- [@M-S-\<Esc\>@]: Open Htop.
 -- [@M-o@]: App Launcher.
@@ -365,8 +365,8 @@ promptCommands =
 -- [@M-S-\<F13\>@]: Screenshot selected region or window.
 quickLaunch :: [(String, String, X ())]
 quickLaunch =
-    [ ("M-<Return>"  , "Open terminal"          , asks (terminal . config) >>= safeSpawnProg)
-        , ("M-S-<Return>", "Open terminal in pop-up", namedScratchpadAction myScratchPads "terminal")
+    [ ("M-S-<Return>"  , "Open terminal"          , asks (terminal . config) >>= safeSpawnProg)
+        , ("M-<Return>", "Open terminal in pop-up", namedScratchpadAction myScratchPads "terminal")
         , ("M-<Esc>", "Open quickDocs pop-up", namedScratchpadAction myScratchPads "quickDocs")
         , ( "M-S-<Esc>"
           , "Open htop"
