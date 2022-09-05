@@ -49,7 +49,9 @@ import           XMonad.Util.NamedActions                 ( NamedAction
                                                           , noName
                                                           , showKmSimple
                                                           )
-import           XMonad.Util.Run                          ( safeSpawnProg )
+import           XMonad.Util.Run                          ( inProgram
+                                                          , proc
+                                                          )
 
 ----------------------------------------------------------------------------------------------------
 -- Utility function for installing global bindings
@@ -80,9 +82,8 @@ addNamedKeys keyList conf = addDescrKeys' ((modMask conf, xK_F1), showKeyBinding
 -- | Display all available global key bindings.
 showKeyBindings :: [((KeyMask, KeySym), NamedAction)] -- ^ A list of binding-description-action triples.
                 -> NamedAction
-showKeyBindings x =
-    addName' "Show Keybindings" $ regenerateKeyBindings (showKmSimple x) >> safeSpawnProg
-        "rofi-xmonad-keys"
+showKeyBindings x = addName' "Show Keybindings" $ regenerateKeyBindings (showKmSimple x) >> proc
+    (inProgram "rofi-xmonad-keys")
 
 -- | Export key bindings to @/tmp/xmonad-keys@ when it satisfies one of the conditions:
 --

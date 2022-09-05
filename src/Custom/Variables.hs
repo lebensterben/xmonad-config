@@ -25,6 +25,13 @@ import           XMonad.Util.NamedScratchpad              ( NamedScratchpad(NS)
                                                           , NamedScratchpads
                                                           , customFloating
                                                           )
+import           XMonad.Util.Run                          ( ProcessConfig(..) )
+
+----------------------------------------------------------------------------------------------------
+-- Process Config
+----------------------------------------------------------------------------------------------------
+myProcessConfig :: ProcessConfig
+myProcessConfig = def { emacsLispDir = "~/.emacs.d/", emacsElpaDir = "~/.emacs.d/elpa/" }
 
 ----------------------------------------------------------------------------------------------------
 -- Color Scheme And Layout

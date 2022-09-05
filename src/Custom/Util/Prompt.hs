@@ -10,11 +10,14 @@
 
 module Custom.Util.Prompt (searchWithInput, searchWithSelection) where
 
+import           Custom.Util.Run                          ( (>-$@) )
 import           Data.Char                                ( toLower
                                                           , toUpper
                                                           )
 import           XMonad                                   ( X )
-import           XMonad.Util.Run                          ( safeSpawn )
+import           XMonad.Util.Run                          ( inProgram
+                                                          , proc
+                                                          )
 import           XMonad.Util.XSelection                   ( transformSafePromptSelection )
 
 
@@ -38,7 +41,7 @@ searchWithInput :: [(String, String, [String])] -- ^ A list of key-name-args.
                                                 -- Args are arguments passed to \"rofi-surfraw\".
                 -> [(String, String, X ())]
 searchWithInput searchProviders =
-    [ (k, desc, safeSpawn "rofi-surfraw" (desc : args))
+    [ (k, desc, proc $ inProgram "rofi-surfraw" >-$@ (desc : args))
     | (k, name, args) <- searchProviders
     , let desc = "Search on " ++ if name == "" then toPascalCase $ head args else name
     ]

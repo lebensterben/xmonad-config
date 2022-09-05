@@ -17,6 +17,7 @@ executable xmonadcfg
     Custom.MouseBindings
     Custom.Util.Keymap
     Custom.Util.Prompt
+    Custom.Util.Run
     Custom.Util.Workspaces
     Custom.Variables
 

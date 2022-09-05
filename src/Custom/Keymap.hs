@@ -8,12 +8,16 @@
 --
 -- Defines the keymap.
 ----------------------------------------------------------------------------------------------------
+-- FIXME: Special keys are not shown in xmonad-keys
 
 module Custom.Keymap (myMajorKeymap) where
 
 import           Custom.Util.Keymap                       ( mkNamedKeymap' )
 import           Custom.Util.Prompt                       ( searchWithInput
                                                           , searchWithSelection
+                                                          )
+import           Custom.Util.Run                          ( (>-$)
+                                                          , (>-$@)
                                                           )
 import           Custom.Util.Workspaces                   ( mergeToMaster
                                                           , moveToScreen
@@ -35,9 +39,7 @@ import           XMonad                                   ( ChangeLayout(..)
                                                           , KeySym
                                                           , WorkspaceId
                                                           , X
-                                                          , XConf(..)
                                                           , XConfig(..)
-                                                          , asks
                                                           , io
                                                           , restart
                                                           , sendMessage
@@ -76,9 +78,13 @@ import           XMonad.Util.NamedActions                 ( NamedAction
                                                           , (^++^)
                                                           )
 import           XMonad.Util.NamedScratchpad              ( namedScratchpadAction )
-import           XMonad.Util.Run                          ( runInTerm
-                                                          , safeSpawn
-                                                          , safeSpawnProg
+import           XMonad.Util.Run                          ( (>->)
+                                                          , elispFun
+                                                          , eval
+                                                          , inEditor
+                                                          , inProgram
+                                                          , inTerm
+                                                          , proc
                                                           )
 import           XMonad.Util.Types                        ( Direction1D(..)
                                                           , Direction2D(..)
@@ -134,7 +140,7 @@ windowNavigation =
         ]
     , (suffix, dir) <- [("h", L), ("j", D), ("k", U), ("l", R)]
     ]
-    ++ [ ("M-<Tab>", "Window Switcher", safeSpawnProg "rofi-window-switcher")
+    ++ [ ("M-<Tab>", "Window Switcher", proc $ inProgram "rofi-window-switcher")
        , ("M-p"    , "Promote focused window to master window", swapHybrid' False)
        , ("M-c"    , "Cycle non-master windows"               , rotUnfocusedDown)
        , ("M-S-c"  , "Cycle all window"                       , rotAllDown)
@@ -345,9 +351,9 @@ promptCommands =
     ]
   where
     spawnPrompt =
-        [ ("m", "Manpage Prompt"       , safeSpawnProg "rofi-man")
-        , ("p", "Password-store Prompt", safeSpawnProg "rofi-pass")
-        , ("=", "Qalc Prompt"          , safeSpawnProg "rofi-qalc")
+        [ ("m", "Manpage Prompt"       , proc $ inProgram "rofi-man")
+        , ("p", "Password-store Prompt", proc $ inProgram "rofi-pass")
+        , ("=", "Qalc Prompt"          , proc $ inProgram "rofi-qalc")
         ]
 
 
@@ -365,23 +371,26 @@ promptCommands =
 -- [@M-S-\<F13\>@]: Screenshot selected region or window.
 quickLaunch :: [(String, String, X ())]
 quickLaunch =
-    [ ("M-S-<Return>"  , "Open terminal"          , asks (terminal . config) >>= safeSpawnProg)
+    [ ("M-S-<Return>", "Open terminal"          , proc inTerm)
         , ("M-<Return>", "Open terminal in pop-up", namedScratchpadAction myScratchPads "terminal")
         , ("M-<Esc>", "Open quickDocs pop-up", namedScratchpadAction myScratchPads "quickDocs")
         , ( "M-S-<Esc>"
           , "Open htop"
-          , runInTerm "--class AlacrittyFloat -o window.dimensions.{columns=200,lines=40}" "htop"
+          , proc
+          $    inTerm
+          >-$@ ["--class AlacrittyFloat", "-o window.dimensions.{columns=200,lines=40}", "-e=htop"]
           )
-        , ("M-o", "App Launcher"     , safeSpawnProg "rofi-launcher")
-        , ("M-b", "Open browser"     , safeSpawnProg "firefox")
-        , ("M-f", "Open file manager", safeSpawnProg "nautilus")
+        , ("M-o", "App Launcher"     , proc $ inProgram "rofi-launcher")
+        , ("M-b", "Open browser"     , proc $ inProgram "firefox")
+        , ("M-f", "Open file manager", proc $ inProgram "nautilus")
         ]
-        ++ [ (key, desc, safeSpawn "polybar-scrot" ["-v", "viewnior", flag])
+        ++ [ (key, desc, proc $ inProgram "polybar-scrot" >-$@ ["-v", "viewnior", flag])
            | (key, desc, flag) <-
                [ ("M-<XF86Tools>"  , "Screenshot whole screen"             , "")
                , ("M-S-<XF86Tools>", "Screenshot selected region or window", "-s")
                ]
            ]
+
 
 -- TODO: Still expanding
 -- | Emacs Commands
@@ -394,18 +403,15 @@ quickLaunch =
 -- [@M-e n@]: Elfeed.
 emacsCmds :: [(String, String, X ())]
 emacsCmds =
-    [ ("M-e " ++ suffix, desc, safeSpawn "emacsclient" args')
+    [ ("M-e " ++ suffix, desc, proc $ inEditor >-> eval (elispFun args))
     | (suffix, desc, args) <-
         [ ("e", "Open Emacs"        , "")
-        , ("b", "List Emacs buffers", "(ibuffer)")
-        , ("d", "Dired"             , "(dired nil)")
-        , ("i", "Emacs IRC"         , "(erc)")
-        , ("m", "mu4e"              , "(mu4e)")
-        , ("n", "Elfeed RSS"        , "(elfeed)")
+        , ("b", "List Emacs buffers", "ibuffer")
+        , ("d", "Dired"             , "dired nil")
+        , ("i", "Emacs IRC"         , "erc")
+        , ("m", "mu4e"              , "mu4e")
+        , ("n", "Elfeed RSS"        , "elfeed")
         ]
-    , let args' = ["-c", "-a=emacs"] ++ case args of
-              [] -> []
-              _  -> ["--eval", args]
     ]
 
 -- TODO: Add Play Next Prev keys
@@ -418,15 +424,15 @@ multiMediaKeys :: [(String, String, X ())]
 multiMediaKeys =
     [ ( "<XF86AudioLowerVolume>"
       , "Lower volume by 5%"
-      , safeSpawn "amixer" ["set", "Master", "5%-", "unmute"]
+      , proc $ inProgram "amixer" >-$ "set Master 5%- unmute"
       )
         , ( "<XF86AudioRaiseVolume>"
           , "Raise volume by 5%"
-          , safeSpawn "amixer" ["set", "Master", "5%+", "unmute"]
+          , proc $ inProgram "amixer" >-$ "set Master 5%+ unmute"
           )
-        , ("<XF86AudioMute>", "Toggle audio mute", safeSpawn "amixer" ["set", "Master", "toggle"])
+        , ("<XF86AudioMute>", "Toggle audio mute", proc $ inProgram "amixer" >-$ "set Master toggle")
         ]
-        ++ [ (key, desc, safeSpawn "mpc" [action])
+        ++ [ (key, desc, proc $ inProgram "mpc" >-$ action)
            | (key, desc, action) <-
                [ ("<XF86AudioPrev>", "Toggle play/pause", "prev")
                , ("<XF86AudioPlay>", "Toggle play/pause", "toggle")

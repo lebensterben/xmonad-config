@@ -20,6 +20,7 @@ import           Custom.Keymap                            ( myMajorKeymap )
 import           Custom.MouseBindings                     ( myMouseBindings )
 import           Custom.Util.Keymap                       ( addNamedKeys )
 import           Custom.Variables                         ( myBorderWidth
+                                                          , myProcessConfig
                                                           , myWorkspaces
                                                           )
 import           XMonad                                   ( (<+>)
@@ -41,6 +42,7 @@ import           XMonad.Hooks.EwmhDesktops                ( ewmh )
 import           XMonad.Hooks.ManageDocks                 ( docks )
 import           XMonad.Hooks.TaffybarPagerHints          ( pagerHints )
 import           XMonad.Hooks.WorkspaceHistory            ( workspaceHistoryHook )
+import           XMonad.Util.Run                          ( spawnExternalProcess )
 
 ----------------------------------------------------------------------------------------------------
 -- Entry point
@@ -80,6 +82,7 @@ main =
         . docks
         . ewmh
         . pagerHints
+        . spawnExternalProcess myProcessConfig
         $ def { modMask         = mod4Mask
               , terminal        = "alacritty"
               , borderWidth     = myBorderWidth
