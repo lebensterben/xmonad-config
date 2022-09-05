@@ -117,7 +117,7 @@ myMajorKeymap conf =
 -- [@M-x M-q@]: Quit XMonad.
 xmonadManagement :: [(String, String, X ())]
 xmonadManagement =
-    [ ("M-x " ++ suffix, desc, action)
+    [ ("M-x " <> suffix, desc, action)
     | (suffix, desc, action) <-
         [("M-r", "Restart XMonad", restart "xmonad" True), ("M-q", "Quit XMonad", io exitSuccess)]
     ]
@@ -132,19 +132,19 @@ xmonadManagement =
 -- [@M-\<Tab\>@]: Window switcher. Type @\<Return>@ to switch to the window.
 -- Or type @S-\<Return\>@ to bring the window to current workspace.
 windowNavigation :: [(String, String, X ())]
-windowNavigation =
-    [ (prefix ++ suffix, desc ++ " " ++ descDir dir, action dir)
+windowNavigation = (<>)
+    [ (prefix <> suffix, desc <> " " <> descDir dir, action dir)
     | (prefix, desc, action) <-
         [ ("M-"  , "Move focus"         , flip windowGo False)
         , ("M-S-", "Swap focused window", flip windowSwap False)
         ]
     , (suffix, dir) <- [("h", L), ("j", D), ("k", U), ("l", R)]
     ]
-    ++ [ ("M-<Tab>", "Window Switcher", proc $ inProgram "rofi-window-switcher")
-       , ("M-p"    , "Promote focused window to master window", swapHybrid' False)
-       , ("M-c"    , "Cycle non-master windows"               , rotUnfocusedDown)
-       , ("M-S-c"  , "Cycle all window"                       , rotAllDown)
-       ]
+    [ ("M-<Tab>", "Window Switcher", proc $ inProgram "rofi-window-switcher")
+    , ("M-p"    , "Promote focused window to master window", swapHybrid' False)
+    , ("M-c"    , "Cycle non-master windows"               , rotUnfocusedDown)
+    , ("M-S-c"  , "Cycle all window"                       , rotAllDown)
+    ]
   where
     descDir = \case
         L -> "Left"
@@ -158,7 +158,7 @@ windowNavigation =
 -- current focus.
 windowResize :: [(String, String, X ())]
 windowResize =
-    [ ("M-M1-" ++ suffix, "Shrink window on the " ++ descDir dir, shrinkFrom dir)
+    [ ("M-M1-" <> suffix, "Shrink window on the " <> descDir dir, shrinkFrom dir)
     | (suffix, dir) <- [("h", L), ("l", R), ("j", D), ("k", U)]
     ]
   where
@@ -180,7 +180,7 @@ windowResize =
 workspaceNavigation :: [WorkspaceId] -- ^ A list of 'WorkspaceId'.
                     -> [(String, String, X ())]
 workspaceNavigation wss =
-    [ (prefix ++ suffix, descPre ++ " " ++ desc ++ " " ++ descSuf, action)
+    [ (prefix <> suffix, unwords [descPre, desc, descSuf], action)
     | (prefix, descPre, descSuf, source) <-
         [ ("M-C-"  , "Go to"                  , "Workspace", moveToWS d1WSmapping)
         , ("M-S-C-", "Shift focused window to", "Workspace", shiftToWS d1WSmapping)
@@ -341,7 +341,7 @@ searchProviders =
 --     [@=@]: Qalc.
 promptCommands :: [(String, String, X ())]
 promptCommands =
-    [ (prefix ++ " " ++ suffix, desc, action)
+    [ (prefix <> " " <> suffix, desc, action)
     | (prefix, source)       <-
         [ ("M-<Space>", spawnPrompt)
         , ("M-/"      , searchWithInput searchProviders)
@@ -370,26 +370,26 @@ promptCommands =
 -- [@M-\<F13\>@]: Screenshot whole screen.
 -- [@M-S-\<F13\>@]: Screenshot selected region or window.
 quickLaunch :: [(String, String, X ())]
-quickLaunch =
+quickLaunch = (<>)
     [ ("M-S-<Return>", "Open terminal"          , proc inTerm)
-        , ("M-<Return>", "Open terminal in pop-up", namedScratchpadAction myScratchPads "terminal")
-        , ("M-<Esc>", "Open quickDocs pop-up", namedScratchpadAction myScratchPads "quickDocs")
-        , ( "M-S-<Esc>"
-          , "Open htop"
-          , proc
-          $    inTerm
-          >-$@ ["--class AlacrittyFloat", "-o window.dimensions.{columns=200,lines=40}", "-e=htop"]
-          )
-        , ("M-o", "App Launcher"     , proc $ inProgram "rofi-launcher")
-        , ("M-b", "Open browser"     , proc $ inProgram "firefox")
-        , ("M-f", "Open file manager", proc $ inProgram "nautilus")
+    , ("M-<Return>", "Open terminal in pop-up", namedScratchpadAction myScratchPads "terminal")
+    , ("M-<Esc>", "Open quickDocs pop-up", namedScratchpadAction myScratchPads "quickDocs")
+    , ( "M-S-<Esc>"
+      , "Open htop"
+      , proc
+      $    inTerm
+      >-$@ ["--class AlacrittyFloat", "-o window.dimensions.{columns=200,lines=40}", "-e=htop"]
+      )
+    , ("M-o", "App Launcher"     , proc $ inProgram "rofi-launcher")
+    , ("M-b", "Open browser"     , proc $ inProgram "firefox")
+    , ("M-f", "Open file manager", proc $ inProgram "nautilus")
+    ]
+    [ (key, desc, proc $ inProgram "polybar-scrot" >-$@ ["-v", "viewnior", flag])
+    | (key, desc, flag) <-
+        [ ("M-<XF86Tools>"  , "Screenshot whole screen"             , "")
+        , ("M-S-<XF86Tools>", "Screenshot selected region or window", "-s")
         ]
-        ++ [ (key, desc, proc $ inProgram "polybar-scrot" >-$@ ["-v", "viewnior", flag])
-           | (key, desc, flag) <-
-               [ ("M-<XF86Tools>"  , "Screenshot whole screen"             , "")
-               , ("M-S-<XF86Tools>", "Screenshot selected region or window", "-s")
-               ]
-           ]
+    ]
 
 
 -- TODO: Still expanding
@@ -403,7 +403,7 @@ quickLaunch =
 -- [@M-e n@]: Elfeed.
 emacsCmds :: [(String, String, X ())]
 emacsCmds =
-    [ ("M-e " ++ suffix, desc, proc $ inEditor >-> eval (elispFun args))
+    [ ("M-e " <> suffix, desc, proc $ inEditor >-> eval (elispFun args))
     | (suffix, desc, args) <-
         [ ("e", "Open Emacs"        , "")
         , ("b", "List Emacs buffers", "ibuffer")
@@ -414,28 +414,26 @@ emacsCmds =
         ]
     ]
 
--- TODO: Add Play Next Prev keys
 -- | Multi Media Keys
 --
 -- [@\<XF86AudioLowerVolume\>@]: Lower volume by 5%.
 -- [@\<XF86AudioRaiseVolume\>@]: Raise volume by 5%.
 -- [@\<XF86AudioMute\>@]: Toggle volume.
+-- [@\<XF86AudioNext\>@]: Next track.
+-- [@\<XF86AudioPrev\>@]: Previous track.
 multiMediaKeys :: [(String, String, X ())]
-multiMediaKeys =
-    [ ( "<XF86AudioLowerVolume>"
-      , "Lower volume by 5%"
-      , proc $ inProgram "amixer" >-$ "set Master 5%- unmute"
-      )
-        , ( "<XF86AudioRaiseVolume>"
-          , "Raise volume by 5%"
-          , proc $ inProgram "amixer" >-$ "set Master 5%+ unmute"
-          )
-        , ("<XF86AudioMute>", "Toggle audio mute", proc $ inProgram "amixer" >-$ "set Master toggle")
+multiMediaKeys = (<>)
+    [ (key, desc, proc $ inProgram "amixer" >-$ action)
+    | (key, desc, action) <-
+        [ ("<XF86AudioLowerVolume>", "Lower volume by 5%", "set Master 5%- unmute")
+        , ("<XF86AudioRaiseVolume>", "Raise volume by 5%", "set Master 5%+ unmute")
+        , ("<XF86AudioMute>"       , "Toggle Mute"       , "set Master toggle")
         ]
-        ++ [ (key, desc, proc $ inProgram "mpc" >-$ action)
-           | (key, desc, action) <-
-               [ ("<XF86AudioPrev>", "Toggle play/pause", "prev")
-               , ("<XF86AudioPlay>", "Toggle play/pause", "toggle")
-               , ("<XF86AudioNext>", "Toggle play/pause", "next")
-               ]
-           ]
+    ]
+    [ (key, desc, proc $ inProgram "mpc" >-$ action)
+    | (key, desc, action) <-
+        [ ("<XF86AudioPrev>", "Previous track"   , "prev")
+        , ("<XF86AudioPlay>", "Toggle play/pause", "toggle")
+        , ("<XF86AudioNext>", "Next track"       , "next")
+        ]
+    ]
