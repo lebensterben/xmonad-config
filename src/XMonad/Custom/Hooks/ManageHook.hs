@@ -1,6 +1,6 @@
 ----------------------------------------------------------------------------------------------------
 -- |
--- Module      : Custom.Hooks.ManageHook
+-- Module      : XMonad.Custom.Hooks.ManageHook
 -- Copyright   : (c) Lucius Hu, 2020-2022
 -- License     : BSD3
 -- Maintainer  : Lucius Hu <lebensterben@users.noreply.github.com>
@@ -8,16 +8,10 @@
 -- Defines actions to run when a new window is opened.
 ----------------------------------------------------------------------------------------------------
 
-module Custom.Hooks.ManageHook (myManageHook) where
+module XMonad.Custom.Hooks.ManageHook (myManageHook) where
 
 import           Control.Applicative                      ( (<|>) )
 import           Control.Monad                            ( liftM2 )
-import           Custom.Variables                         ( centerFloatApps
-                                                          , centerFloatClasses
-                                                          , myScratchPads
-                                                          , shiftWSApps
-                                                          , shiftWSClassses
-                                                          )
 import           Data.Function                            ( (&) )
 import qualified Data.HashMap.Strict                     as M
 import qualified Data.HashSet                            as S
@@ -27,6 +21,12 @@ import           XMonad                                   ( (<||>)
                                                           , className
                                                           , composeAll
                                                           , doShift
+                                                          )
+import           XMonad.Custom.Variables                  ( centerFloatApps
+                                                          , centerFloatClasses
+                                                          , myScratchPads
+                                                          , shiftWSApps
+                                                          , shiftWSClassses
                                                           )
 import           XMonad.Hooks.ManageHelpers               ( (-?>)
                                                           , (-?>>)

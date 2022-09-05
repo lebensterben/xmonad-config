@@ -1,6 +1,6 @@
 ----------------------------------------------------------------------------------------------------
 -- |
--- Module      : Custom.MouseBindings
+-- Module      : XMonad.Custom.MouseBindings
 -- Copyright   : (c) Lucius Hu, 2020-2022
 -- License     : BSD3
 -- Maintainer  : Lucius Hu <lebensterben@users.noreply.github.com>
@@ -8,7 +8,7 @@
 -- Defines mouse bindings.
 ----------------------------------------------------------------------------------------------------
 
-module Custom.MouseBindings (myMouseBindings) where
+module XMonad.Custom.MouseBindings (myMouseBindings) where
 
 import qualified Data.Map                                as M
 import           XMonad                                   ( (.|.)
@@ -24,7 +24,7 @@ import           XMonad                                   ( (.|.)
                                                           , mouseResizeWindow
                                                           , shiftMask
                                                           )
-import           XMonad.Actions.FloatSnap                 ( Direction2D(D, R)
+import           XMonad.Actions.FloatSnap                 ( Direction2D(..)
                                                           , afterDrag
                                                           , snapMagicMove
                                                           , snapMagicResize

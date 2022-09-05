@@ -1,6 +1,6 @@
 ----------------------------------------------------------------------------------------------------
 -- |
--- Module      : Custom.Keymap
+-- Module      : XMonad.Custom.Keymap
 -- Copyright   : (c) Lucius Hu, 2020-2022
 -- License     : BSD3
 -- Maintainer  : Lucius Hu <lebensterben@users.noreply.github.com>
@@ -8,7 +8,7 @@
 -- Provides common utilities for managing keybindings.
 ----------------------------------------------------------------------------------------------------
 
-module Custom.Util.Keymap (mkNamedKeymap', addNamedKeys) where
+module XMonad.Custom.Util.Keymap (mkNamedKeymap', addNamedKeys) where
 
 import           Control.Exception                        ( SomeException(..)
                                                           , catch

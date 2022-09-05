@@ -1,6 +1,6 @@
 ----------------------------------------------------------------------------------------------------
 -- |
--- Module      : Custom.Prompt
+-- Module      : XMonad.Custom.Prompt
 -- Copyright   : (c) Lucius Hu, 2020-2022
 -- License     : BSD3
 -- Maintainer  : Lucius Hu <lebensterben@users.noreply.github.com>
@@ -8,13 +8,13 @@
 -- Provides interfaces for various kinds of prompts.
 ----------------------------------------------------------------------------------------------------
 
-module Custom.Util.Prompt (searchWithInput, searchWithSelection) where
+module XMonad.Custom.Util.Prompt (searchWithInput, searchWithSelection) where
 
-import           Custom.Util.Run                          ( (>-$@) )
 import           Data.Char                                ( toLower
                                                           , toUpper
                                                           )
 import           XMonad                                   ( X )
+import           XMonad.Custom.Util.Run                   ( (>-$@) )
 import           XMonad.Util.Run                          ( inProgram
                                                           , proc
                                                           )

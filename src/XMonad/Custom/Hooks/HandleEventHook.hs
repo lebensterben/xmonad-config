@@ -1,6 +1,6 @@
 ----------------------------------------------------------------------------------------------------
 -- |
--- Module      : Custom.Hooks.HandleEventHook
+-- Module      : XMonad.Custom.Hooks.HandleEventHook
 -- Copyright   : (c) Lucius Hu, 2020-2022
 -- License     : BSD3
 -- Maintainer  : Lucius Hu <lebensterben@users.noreply.github.com>
@@ -8,7 +8,7 @@
 -- Provides interfaces to interact with \"xmonadctl\" CLI utility.
 ----------------------------------------------------------------------------------------------------
 
-module Custom.Hooks.HandleEventHook (myHandleEventHook) where
+module XMonad.Custom.Hooks.HandleEventHook (myHandleEventHook) where
 
 import           Data.Monoid                              ( All )
 import qualified Graphics.X11.Xlib.Extras                as X11

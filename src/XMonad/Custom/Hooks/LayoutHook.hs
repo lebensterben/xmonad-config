@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 ----------------------------------------------------------------------------------------------------
 -- |
--- Module      : Custom.Layouts
+-- Module      : XMonad.Custom.Layouts
 -- Copyright   : (c) Lucius Hu, 2020-2022
 -- License     : BSD3
 -- Maintainer  : Lucius Hu <lebensterben@users.noreply.github.com>
@@ -9,14 +9,14 @@
 -- My selection of layouts.
 ----------------------------------------------------------------------------------------------------
 
-module Custom.Hooks.LayoutHook (myLayoutHook) where
+module XMonad.Custom.Hooks.LayoutHook (myLayoutHook) where
 
-import           Custom.Variables                         ( mySpacingWidth
-                                                          , showWNameConfig
-                                                          , tabbedConfig
-                                                          )
 import           XMonad                                   ( LayoutClass
                                                           , (|||)
+                                                          )
+import           XMonad.Custom.Variables                  ( mySpacingWidth
+                                                          , showWNameConfig
+                                                          , tabbedConfig
                                                           )
 import           XMonad.Hooks.ManageDocks                 ( avoidStruts )
 import           XMonad.Layout.BinarySpacePartition       ( emptyBSP )

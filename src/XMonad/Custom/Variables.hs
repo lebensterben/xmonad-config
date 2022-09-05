@@ -1,6 +1,6 @@
 ----------------------------------------------------------------------------------------------------
 -- |
--- Module      : Custom.Variables
+-- Module      : XMonad.Custom.Variables
 -- Copyright   : (c) Lucius Hu, 2020-2022
 -- License     : BSD3
 -- Maintainer  : Lucius Hu <lebensterben@users.noreply.github.com>
@@ -8,7 +8,7 @@
 -- Defines top level customizaton variables.
 ----------------------------------------------------------------------------------------------------
 
-module Custom.Variables where
+module XMonad.Custom.Variables where
 
 import qualified Data.HashMap.Strict                     as M
 import qualified Data.HashSet                            as S

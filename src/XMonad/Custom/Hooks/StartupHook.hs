@@ -1,21 +1,21 @@
 ----------------------------------------------------------------------------------------------------
 -- |
--- Module      : Custom.Hooks.StartupHook
+-- Module      : XMonad.Custom.Hooks.StartupHook
 -- Copyright   : (c) Lucius Hu, 2020-2022
 -- License     : BSD3
 -- Maintainer  : Lucius Hu <lebensterben@users.noreply.github.com>
 --
 -- Defines actions to run after xmonad starts up.
 ----------------------------------------------------------------------------------------------------
-module Custom.Hooks.StartupHook (myStartupHook) where
+module XMonad.Custom.Hooks.StartupHook (myStartupHook) where
 
-import           Custom.Variables                         ( startUpApps )
 import           System.Posix.Env                         ( putEnv )
 import           XMonad                                   ( (<+>)
                                                           , X
                                                           , io
                                                           , xC_left_ptr
                                                           )
+import           XMonad.Custom.Variables                  ( startUpApps )
 import           XMonad.Hooks.SetWMName                   ( setWMName )
 import           XMonad.Util.Cursor                       ( setDefaultCursor )
 import           XMonad.Util.SpawnOnce                    ( spawnOnce )

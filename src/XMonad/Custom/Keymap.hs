@@ -1,7 +1,7 @@
 {-# LANGUAGE LambdaCase #-}
 ----------------------------------------------------------------------------------------------------
 -- |
--- Module      : Custom.Keymap.MajorKeymap
+-- Module      : XMonad.Custom.Keymap
 -- Copyright   : (c) Lucius Hu, 2020-2022
 -- License     : BSD3
 -- Maintainer  : Lucius Hu <lebensterben@users.noreply.github.com>
@@ -10,25 +10,8 @@
 ----------------------------------------------------------------------------------------------------
 -- FIXME: Special keys are not shown in xmonad-keys
 
-module Custom.Keymap (myMajorKeymap) where
+module XMonad.Custom.Keymap (myMajorKeymap) where
 
-import           Custom.Util.Keymap                       ( mkNamedKeymap' )
-import           Custom.Util.Prompt                       ( searchWithInput
-                                                          , searchWithSelection
-                                                          )
-import           Custom.Util.Run                          ( (>-$@) )
-import           Custom.Util.Workspaces                   ( mergeToMaster
-                                                          , moveToScreen
-                                                          , moveToWS
-                                                          , moveToWS'
-                                                          , shiftToScreen
-                                                          , shiftToWS
-                                                          , shiftToWS'
-                                                          , shrinkFrom
-                                                          , smartSink
-                                                          , smartSinkAll
-                                                          )
-import           Custom.Variables                         ( myScratchPads )
 import           Data.List                                ( foldl' )
 import           System.Exit                              ( exitSuccess )
 import           XMonad                                   ( ChangeLayout(..)
@@ -52,6 +35,23 @@ import           XMonad.Actions.Navigation2D              ( windowGo
 import           XMonad.Actions.RotSlaves                 ( rotAllDown )
 import           XMonad.Actions.SwapPromote               ( swapHybrid' )
 import           XMonad.Actions.WithAll                   ( killOthers )
+import           XMonad.Custom.Util.Keymap                ( mkNamedKeymap' )
+import           XMonad.Custom.Util.Prompt                ( searchWithInput
+                                                          , searchWithSelection
+                                                          )
+import           XMonad.Custom.Util.Run                   ( (>-$@) )
+import           XMonad.Custom.Util.Workspaces            ( mergeToMaster
+                                                          , moveToScreen
+                                                          , moveToWS
+                                                          , moveToWS'
+                                                          , shiftToScreen
+                                                          , shiftToWS
+                                                          , shiftToWS'
+                                                          , shrinkFrom
+                                                          , smartSink
+                                                          , smartSinkAll
+                                                          )
+import           XMonad.Custom.Variables                  ( myScratchPads )
 import           XMonad.Hooks.ManageDocks                 ( ToggleStruts(..) )
 import           XMonad.Layout.Hidden                     ( hideWindow
                                                           , popNewestHiddenWindow

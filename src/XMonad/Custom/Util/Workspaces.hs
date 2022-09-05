@@ -9,7 +9,7 @@
 -- Provides utility functions to interact with workspaces.
 ----------------------------------------------------------------------------------------------------
 
-module Custom.Util.Workspaces
+module XMonad.Custom.Util.Workspaces
     ( moveToWS
     , shiftToWS
     , moveToWS'

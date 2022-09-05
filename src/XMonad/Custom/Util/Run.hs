@@ -1,13 +1,14 @@
 ----------------------------------------------------------------------------------------------------
 -- |
--- Module      : Custom.Util.Run
--- Copyright   : (c) Lucius Hu, 2022-2022
+-- Module      : XMonad.Custom.Util.Run
+-- Copyright   : (c) Lucius Hu, 2022
 -- License     : BSD3
 -- Maintainer  : Lucius Hu <lebensterben@users.noreply.github.com>
 --
 -- Override symbos in 'XMonad.Util.Run'.
 ----------------------------------------------------------------------------------------------------
-module Custom.Util.Run where
+module XMonad.Custom.Util.Run where
+
 import           XMonad                                   ( X )
 import           XMonad.Util.Run                          ( (>->)
                                                           , Input

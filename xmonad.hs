@@ -12,17 +12,6 @@
 
 module Main where
 
-import           Custom.Hooks.HandleEventHook             ( myHandleEventHook )
-import           Custom.Hooks.LayoutHook                  ( myLayoutHook )
-import           Custom.Hooks.ManageHook                  ( myManageHook )
-import           Custom.Hooks.StartupHook                 ( myStartupHook )
-import           Custom.Keymap                            ( myMajorKeymap )
-import           Custom.MouseBindings                     ( myMouseBindings )
-import           Custom.Util.Keymap                       ( addNamedKeys )
-import           Custom.Variables                         ( myBorderWidth
-                                                          , myProcessConfig
-                                                          , myWorkspaces
-                                                          )
 import           XMonad                                   ( (<+>)
                                                           , Default(def)
                                                           , XConfig(..)
@@ -38,6 +27,17 @@ import           XMonad.Actions.Navigation2D              ( Navigation2DConfig(.
                                                           , withNavigation2DConfig
                                                           )
 import           XMonad.Actions.SwapPromote               ( masterHistoryHook )
+import           XMonad.Custom.Hooks.HandleEventHook      ( myHandleEventHook )
+import           XMonad.Custom.Hooks.LayoutHook           ( myLayoutHook )
+import           XMonad.Custom.Hooks.ManageHook           ( myManageHook )
+import           XMonad.Custom.Hooks.StartupHook          ( myStartupHook )
+import           XMonad.Custom.Keymap                     ( myMajorKeymap )
+import           XMonad.Custom.MouseBindings              ( myMouseBindings )
+import           XMonad.Custom.Util.Keymap                ( addNamedKeys )
+import           XMonad.Custom.Variables                  ( myBorderWidth
+                                                          , myProcessConfig
+                                                          , myWorkspaces
+                                                          )
 import           XMonad.Hooks.EwmhDesktops                ( ewmh )
 import           XMonad.Hooks.ManageDocks                 ( docks )
 import           XMonad.Hooks.TaffybarPagerHints          ( pagerHints )

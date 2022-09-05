@@ -9,17 +9,17 @@ cabal-version: >=1.10
 executable xmonadcfg
   main-is:          ../xmonad.hs
   other-modules:
-    Custom.Hooks.HandleEventHook
-    Custom.Hooks.LayoutHook
-    Custom.Hooks.ManageHook
-    Custom.Hooks.StartupHook
-    Custom.Keymap
-    Custom.MouseBindings
-    Custom.Util.Keymap
-    Custom.Util.Prompt
-    Custom.Util.Run
-    Custom.Util.Workspaces
-    Custom.Variables
+    XMonad.Custom.Hooks.HandleEventHook
+    XMonad.Custom.Hooks.LayoutHook
+    XMonad.Custom.Hooks.ManageHook
+    XMonad.Custom.Hooks.StartupHook
+    XMonad.Custom.Keymap
+    XMonad.Custom.MouseBindings
+    XMonad.Custom.Util.Keymap
+    XMonad.Custom.Util.Prompt
+    XMonad.Custom.Util.Run
+    XMonad.Custom.Util.Workspaces
+    XMonad.Custom.Variables
 
   build-depends:
                     base
