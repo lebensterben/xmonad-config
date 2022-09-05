@@ -13,15 +13,8 @@ import           XMonad.Util.Run                          ( (>->)
                                                           , Input
                                                           )
 
-(>-$) :: X Input -> String -> X Input
-(>-$) xi xs = xi >-> pure (mkDList xs)
-  where
-    mkDList :: String -> ShowS
-    mkDList = (<>) . (<> " ")
-infixr 3 >-$
-
-(>-$@) :: X Input -> [String] -> X Input
-(>-$@) xi xs = xi >-> pure (mkDList xs)
+(>-$@) :: X Input -> X [String] -> X Input
+(>-$@) xi xs = xi >-> fmap mkDList xs
   where
     mkDList :: [String] -> ShowS
     mkDList a = (<>) (unwords a <> " ")

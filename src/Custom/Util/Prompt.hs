@@ -41,7 +41,7 @@ searchWithInput :: [(String, String, [String])] -- ^ A list of key-name-args.
                                                 -- Args are arguments passed to \"rofi-surfraw\".
                 -> [(String, String, X ())]
 searchWithInput searchProviders =
-    [ (k, desc, proc $ inProgram "rofi-surfraw" >-$@ (desc : args))
+    [ (k, desc, proc $ inProgram "rofi-surfraw" >-$@ pure (desc : args))
     | (k, name, args) <- searchProviders
     , let desc = "Search on " ++ if name == "" then toPascalCase $ head args else name
     ]

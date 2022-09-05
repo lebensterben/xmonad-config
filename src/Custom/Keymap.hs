@@ -16,9 +16,7 @@ import           Custom.Util.Keymap                       ( mkNamedKeymap' )
 import           Custom.Util.Prompt                       ( searchWithInput
                                                           , searchWithSelection
                                                           )
-import           Custom.Util.Run                          ( (>-$)
-                                                          , (>-$@)
-                                                          )
+import           Custom.Util.Run                          ( (>-$@) )
 import           Custom.Util.Workspaces                   ( mergeToMaster
                                                           , moveToScreen
                                                           , moveToWS
@@ -78,13 +76,15 @@ import           XMonad.Util.NamedActions                 ( NamedAction
                                                           , (^++^)
                                                           )
 import           XMonad.Util.NamedScratchpad              ( namedScratchpadAction )
-import           XMonad.Util.Run                          ( (>->)
+import           XMonad.Util.Run                          ( (>-$)
+                                                          , (>->)
                                                           , elispFun
                                                           , eval
                                                           , inEditor
                                                           , inProgram
                                                           , inTerm
                                                           , proc
+                                                          , setXClass
                                                           )
 import           XMonad.Util.Types                        ( Direction1D(..)
                                                           , Direction2D(..)
@@ -376,15 +376,14 @@ quickLaunch = (<>)
     , ("M-<Esc>", "Open quickDocs pop-up", namedScratchpadAction myScratchPads "quickDocs")
     , ( "M-S-<Esc>"
       , "Open htop"
-      , proc
-      $    inTerm
-      >-$@ ["--class AlacrittyFloat", "-o window.dimensions.{columns=200,lines=40}", "-e=htop"]
+      , proc $ inTerm >-> setXClass "AlacrittyFloat" >-$@ pure
+          ["-o window.dimensions.{columns=200,lines=40}", "-e=htop"]
       )
     , ("M-o", "App Launcher"     , proc $ inProgram "rofi-launcher")
     , ("M-b", "Open browser"     , proc $ inProgram "firefox")
     , ("M-f", "Open file manager", proc $ inProgram "nautilus")
     ]
-    [ (key, desc, proc $ inProgram "polybar-scrot" >-$@ ["-v", "viewnior", flag])
+    [ (key, desc, proc $ inProgram "polybar-scrot" >-$@ pure ["-v", "viewnior", flag])
     | (key, desc, flag) <-
         [ ("M-<XF86Tools>"  , "Screenshot whole screen"             , "")
         , ("M-S-<XF86Tools>", "Screenshot selected region or window", "-s")
@@ -423,14 +422,14 @@ emacsCmds =
 -- [@\<XF86AudioPrev\>@]: Previous track.
 multiMediaKeys :: [(String, String, X ())]
 multiMediaKeys = (<>)
-    [ (key, desc, proc $ inProgram "amixer" >-$ action)
+    [ (key, desc, proc $ inProgram "amixer" >-$ pure action)
     | (key, desc, action) <-
         [ ("<XF86AudioLowerVolume>", "Lower volume by 5%", "set Master 5%- unmute")
         , ("<XF86AudioRaiseVolume>", "Raise volume by 5%", "set Master 5%+ unmute")
         , ("<XF86AudioMute>"       , "Toggle Mute"       , "set Master toggle")
         ]
     ]
-    [ (key, desc, proc $ inProgram "mpc" >-$ action)
+    [ (key, desc, proc $ inProgram "mpc" >-$ pure action)
     | (key, desc, action) <-
         [ ("<XF86AudioPrev>", "Previous track"   , "prev")
         , ("<XF86AudioPlay>", "Toggle play/pause", "toggle")
