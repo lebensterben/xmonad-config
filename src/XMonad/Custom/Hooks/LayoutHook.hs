@@ -19,6 +19,7 @@ import           XMonad.Custom.Variables                  ( mySpacingWidth
                                                           , tabbedConfig
                                                           )
 import           XMonad.Hooks.ManageDocks                 ( avoidStruts )
+import           XMonad.Hooks.ScreenCorners               ( screenCornerLayoutHook )
 import           XMonad.Layout.BinarySpacePartition       ( emptyBSP )
 import           XMonad.Layout.BorderResize               ( borderResize )
 import           XMonad.Layout.Decoration                 ( Decoration
@@ -157,6 +158,7 @@ myLayoutHook =
         .   toggleLayouts floats
         .   mkToggle (single NBFULL)
         .   subTabbed' tabbedConfig
+        .   screenCornerLayoutHook
         $   tall
         ||| binary
         ||| grid

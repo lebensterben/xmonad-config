@@ -12,10 +12,10 @@ module XMonad.Custom.Hooks.HandleEventHook (myHandleEventHook) where
 
 import           Data.Monoid                              ( All )
 import qualified Graphics.X11.Xlib.Extras                as X11
-import           XMonad                                   ( (<+>)
-                                                          , X
+import           XMonad                                   ( X
                                                           , io
                                                           )
+import           XMonad.Hooks.ScreenCorners               ( screenCornerEventHook )
 import           XMonad.Hooks.ServerMode                  ( serverModeEventHook
                                                           , serverModeEventHookCmd
                                                           , serverModeEventHookF
@@ -34,6 +34,7 @@ import           XMonad.Layout.LayoutHints                ( hintsEventHook )
 myHandleEventHook :: X11.Event -> X All
 myHandleEventHook =
     serverModeEventHookCmd
-        <+> serverModeEventHook
-        <+> serverModeEventHookF "XMONAD_PRINT" (io . putStrLn)
-        <+> hintsEventHook
+        >> serverModeEventHook
+        >> serverModeEventHookF "XMONAD_PRINT" (io . putStrLn)
+        >> hintsEventHook
+        >> screenCornerEventHook

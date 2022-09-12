@@ -12,8 +12,7 @@
 
 module Main where
 
-import           XMonad                                   ( (<+>)
-                                                          , Default(def)
+import           XMonad                                   ( Default(def)
                                                           , XConfig(..)
                                                           , mod4Mask
                                                           , xmonad
@@ -87,7 +86,7 @@ main =
               , terminal        = "alacritty"
               , borderWidth     = myBorderWidth
               , workspaces      = myWorkspaces
-              , logHook         = workspaceHistoryHook <+> masterHistoryHook
+              , logHook         = workspaceHistoryHook <> masterHistoryHook
               , layoutHook      = myLayoutHook
               , handleEventHook = myHandleEventHook
               , manageHook      = myManageHook

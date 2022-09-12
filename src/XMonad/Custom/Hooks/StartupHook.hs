@@ -10,14 +10,19 @@
 module XMonad.Custom.Hooks.StartupHook (myStartupHook) where
 
 import           System.Posix.Env                         ( putEnv )
-import           XMonad                                   ( (<+>)
-                                                          , X
+import           XMonad                                   ( X
                                                           , io
                                                           , xC_left_ptr
                                                           )
 import           XMonad.Custom.Variables                  ( startUpApps )
+import           XMonad.Hooks.ScreenCorners               ( ScreenCorner(SCUpperRight)
+                                                          , addScreenCorner
+                                                          )
 import           XMonad.Hooks.SetWMName                   ( setWMName )
 import           XMonad.Util.Cursor                       ( setDefaultCursor )
+import           XMonad.Util.Run                          ( inProgram
+                                                          , proc
+                                                          )
 import           XMonad.Util.SpawnOnce                    ( spawnOnce )
 
 ----------------------------------------------------------------------------------------------------
@@ -31,7 +36,8 @@ import           XMonad.Util.SpawnOnce                    ( spawnOnce )
 -- - Set X Cursor.
 -- - Launch external programs. See 'startUpApps'.
 myStartupHook :: X ()
-myStartupHook =
-    (setWMName "LG3D" *> io (putEnv "_JAVA_AWT_WM_NONREPARENTING=1"))
-        <+> setDefaultCursor xC_left_ptr
-        <+> mapM_ spawnOnce startUpApps
+myStartupHook = do
+    setWMName "LG3D" *> io (putEnv "_JAVA_AWT_WM_NONREPARENTING=1")
+    setDefaultCursor xC_left_ptr
+    mapM_ spawnOnce startUpApps
+    addScreenCorner SCUpperRight (proc $ inProgram "toggle-deadd-notification-center")
