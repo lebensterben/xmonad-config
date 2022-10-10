@@ -15,7 +15,7 @@ import           XMonad                                   ( X
                                                           , xC_left_ptr
                                                           )
 import           XMonad.Custom.Variables                  ( startUpApps )
-import           XMonad.Hooks.ScreenCorners               ( ScreenCorner(SCUpperRight)
+import           XMonad.Hooks.ScreenCorners               ( ScreenCorner(SCLowerRight)
                                                           , addScreenCorner
                                                           )
 import           XMonad.Hooks.SetWMName                   ( setWMName )
@@ -40,4 +40,4 @@ myStartupHook = do
     setWMName "LG3D" *> io (putEnv "_JAVA_AWT_WM_NONREPARENTING=1")
     setDefaultCursor xC_left_ptr
     mapM_ spawnOnce startUpApps
-    addScreenCorner SCUpperRight (proc $ inProgram "toggle-deadd-notification-center")
+    addScreenCorner SCLowerRight (proc $ inProgram "toggle-deadd-notification-center")
