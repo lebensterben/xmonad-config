@@ -29,7 +29,7 @@ jobs:
       - name: Setup GHC with Stack
         uses: haskell/actions/setup@v2
         with:
-          ghc-version: "9.0.2"
+          ghc-version: "9.2.5"
           enable-stack: true
 
       - name: Cache ~/.stack
@@ -47,7 +47,9 @@ jobs:
           restore-keys: ${{ runner.os }}-stack-work-
 
       - name: Install system dependencies
-        run: sudo apt-get install libxrandr-dev libxss-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get install libxrandr-dev libxss-dev libxft-dev
 
       - name: Install dependencies
         run: |
