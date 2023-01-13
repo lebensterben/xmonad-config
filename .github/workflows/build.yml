@@ -47,7 +47,9 @@ jobs:
           restore-keys: ${{ runner.os }}-stack-work-
 
       - name: Install system dependencies
-        run: sudo apt-get install libxrandr-dev libxss-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get install libxrandr-dev libxss-dev
 
       - name: Install dependencies
         run: |
