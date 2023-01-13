@@ -49,7 +49,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install libxrandr-dev libxss-dev
+          sudo apt-get install libxrandr-dev libxss-dev libxft-dev
 
       - name: Install dependencies
         run: |
