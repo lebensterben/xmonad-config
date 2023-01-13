@@ -54,7 +54,7 @@ jobs:
       - name: Install dependencies
         run: |
           stack update
-          stack build --only-dependencies
+          stack build --only-dependencies --verbosity error
 
       - name: Build
         run: stack build
