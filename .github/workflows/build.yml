@@ -23,7 +23,7 @@ jobs:
       - name: Setup GHC with Stack
         uses: haskell/actions/setup@v2
         with:
-          ghc-version: "9.4.4"
+          ghc-version: "9.6.2"
           enable-stack: true
 
       - name: Cache ~/.stack
